@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Upload CV - CVision</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">
+            <img src="assets/logo.png" alt="CVision Logo">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="upload.html">Upload CV</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
+                <li class="nav-item"><a class="nav-link btn-login" href="#">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- UPLOAD PAGE -->
+<section class="upload-page">
+    <div class="upload-container">
+
+        <h1 class="page-title">Upload your CV</h1>
+
+        <div class="welcome-box">
+            <h2>Instructions</h2>
+            <p>
+                Upload your CV to analyse skills and generate personalised job recommendations.
+                Supported formats: PDF and DOCX (max 5MB).
+            </p>
+        </div>
+
+        <div class="upload-dropzone" id="dropzone">
+            <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
+            <div class="upload-icon">
+                <i class="bi bi-upload"></i>
+            </div>
+            <div class="upload-text">Drag and drop your CV here</div>
+            <div class="upload-subtext">or click to browse files</div>
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-details">
+                <i class="bi bi-file-earmark-text file-icon"></i>
+                <div>
+                    <div class="file-name" id="fileName"></div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
+            </div>
+            <button class="remove-file" id="removeFile">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+
+        <button class="btn-analyze" id="analyzeBtn">
+            Analyse CV
+        </button>
+
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2024 CVision. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+let selectedFile = null;
+const maxFileSize = 5 * 1024 * 1024;
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const removeFile = document.getElementById('removeFile');
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+dropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+});
+
+dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+});
+
+dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+    if (!files.length) return;
+
+    const file = files[0];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (!['.pdf', '.docx'].includes(ext)) {
+        alert('Only PDF or DOCX files are allowed.');
+        return;
+    }
+
+    if (file.size > maxFileSize) {
+        alert('File must be under 5MB.');
+        return;
+    }
+
+    selectedFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    fileInfo.classList.add('show');
+    analyzeBtn.classList.add('show');
+}
+
+removeFile.addEventListener('click', () => {
+    selectedFile = null;
+    fileInput.value = '';
+    fileInfo.classList.remove('show');
+    analyzeBtn.classList.remove('show');
+});
+
+analyzeBtn.addEventListener('click', async () => {
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analysing...';
+
+    const formData = new FormData();
+    formData.append('cvFile', selectedFile);
+
+    try {
+        const res = await fetch('/analyze', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        sessionStorage.setItem('cvResults', JSON.stringify(data));
+        window.location.href = 'results.html';
+    } catch (err) {
+        alert('Error analysing CV');
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = 'Analyse CV';
+    }
+});
+
+function formatSize(bytes) {
+    const kb = bytes / 1024;
+    return kb < 1024
+        ? kb.toFixed(1) + ' KB'
+        : (kb / 1024).toFixed(1) + ' MB';
+}
+</script>
+
+</body>
+</html>
