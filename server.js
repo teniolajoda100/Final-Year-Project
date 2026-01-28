@@ -38,15 +38,13 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(session({
-    secret: 'cvision-secret-key',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        maxAge: 24 * 60 * 60 * 1000
-    }
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+
 
 app.use(express.static(path.join(__dirname)));
 
