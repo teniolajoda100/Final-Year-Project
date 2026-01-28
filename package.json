@@ -1,28 +1,20 @@
 {
-  "name": "fyp",
+  "name": "cvision-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CV scanning platform with Bloom's Taxonomy",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "express": "^5.2.1",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
     "express-session": "^1.19.0",
+    "mammoth": "^1.11.0",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.104.0",
+    "pdfjs-dist": "^2.16.105",
     "pg": "^8.17.2"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/teniolajoda100/Final-Year-Project.git"
-  },
-  "bugs": {
-    "url": "https://github.com/teniolajoda100/Final-Year-Project/issues"
-  },
-  "homepage": "https://github.com/teniolajoda100/Final-Year-Project#readme"
+  }
 }
