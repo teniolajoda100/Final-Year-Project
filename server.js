@@ -45,7 +45,6 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-
 app.use(express.static(path.join(__dirname)));
 
 /* ================================
@@ -206,6 +205,7 @@ app.post('/login', async (req, res) => {
         req.session.userId = user.id;
         req.session.role = user.role;
         req.session.fullName = user.full_name;
+        req.session.email = user.email;
 
         res.redirect('/dashboard');
 
@@ -236,6 +236,7 @@ app.post('/signup', async (req, res) => {
         req.session.userId = result.rows[0].id;
         req.session.role = role;
         req.session.fullName = fullName;
+        req.session.email = email;
 
         res.redirect('/dashboard');
 
@@ -257,14 +258,24 @@ app.get('/dashboard', (req, res) => {
     }
 });
 
-app.get('/logout', (req, res) => {
+app.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) return res.status(500).send('Logout failed');
         res.clearCookie('connect.sid');
-        res.redirect('/');
+        res.json({ success: true });
     });
 });
+app.get('/profile-data', (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
 
+    res.json({
+        fullName: req.session.fullName,
+        role: req.session.role,
+        email: req.session.email // optional unless you store it
+    });
+});
 app.post('/analyze', upload.single('cvFile'), async (req, res) => {
     try {
         if (!req.file) return res.json({ error: 'No file uploaded' });
@@ -342,3 +353,26 @@ app.listen(PORT, () => {
         console.log('⚠️  Warning: OPENAI_API_KEY not found');
     }
 });
+console.log(
+  "OPENAI KEY CHECK:",
+  process.env.OPENAI_API_KEY,
+  "length:",
+  process.env.OPENAI_API_KEY?.length
+);
+app.get('/session-info', (req, res) => {
+    if (req.session.userId) {
+        return res.json({
+            loggedIn: true,
+            fullName: req.session.fullName
+        });
+    }
+    res.json({ loggedIn: false });
+});
+app.get('/profile', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/login');
+    }
+
+    res.sendFile(path.join(__dirname, 'profile.html'));
+});
+

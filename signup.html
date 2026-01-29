@@ -12,12 +12,45 @@
     <style>
         body { background: #f4f6f9; }
 
+        /* Navbar sizing */
+        .navbar {
+            padding: 8px 0;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 100px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            padding: 8px 14px;
+        }
+
+        .nav-pill {
+            border-radius: 20px;
+            padding: 8px 18px;
+            background: rgba(255,255,255,0.15);
+            color: white !important;
+        }
+
+        .nav-pill.outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .nav-pill.active {
+            background: white;
+            color: #0d6efd !important;
+        }
+
+        /* Signup layout */
         .signup-wrapper {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 100px 20px 60px;
+            padding: 120px 20px 60px;
         }
 
         .signup-container {
@@ -36,6 +69,12 @@
             margin-bottom: 30px;
         }
 
+        .signup-container .form-control {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -46,16 +85,28 @@
             font-size: 1.1rem;
             font-weight: 600;
         }
-        /* Style input boxes like textboxes */
-        .signup-container .form-control {
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #ddd;
-        }
-
     </style>
 </head>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let lastScrollTop = 0;
+    const navbar = document.querySelector('.navbar');
+
+    window.addEventListener('scroll', function () {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+            navbar.classList.add('navbar-hidden');
+        } else {
+            navbar.classList.remove('navbar-hidden');
+        }
+
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+});
+</script>
+
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -63,6 +114,23 @@
         <a class="navbar-brand" href="/">
             <img src="assets/logo.png" alt="CVision Logo">
         </a>
+
+        <div class="collapse navbar-collapse show">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-pill outline" href="/login">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-pill active" href="/signup">Signup</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
@@ -88,13 +156,14 @@
 
             <div class="mb-4">
                 <label class="form-label">I am a:</label>
-                <select name="role" class="form-control" required>
-                    <option value="">Select user type</option>
-                    <option value="student">Student / Graduate</option>
-                    <option value="professional">Working Professional</option>
-                    <option value="recruiter">Recruiter / HR</option>
-                    <option value="other">Other</option>
-                </select>
+              <select name="role" class="form-control" required>
+                <option value="">Select user type</option>
+                <option value="student">Student / Graduate</option>
+                <option value="professional">Working Professional</option>
+                <option value="recruiter">Recruiter / HR</option>
+                <option value="other">Other</option>
+              </select>
+
             </div>
 
             <button type="submit" class="btn-submit">Create Account</button>

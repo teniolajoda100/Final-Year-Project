@@ -9,10 +9,33 @@
     <link href="css/styles.css" rel="stylesheet">
 
     <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            background-color: #f4f6f9; /* same as signup background */
+        body {
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            padding: 8px 0;
+        }
+
+        .navbar-brand img {
+            height: 100px;
+        }
+
+        .nav-pill {
+            border-radius: 20px;
+            padding: 8px 18px;
+            background: rgba(255,255,255,0.15);
+            color: white !important;
+        }
+
+        .nav-pill.outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .nav-pill.active {
+            background: white;
+            color: #0d6efd !important;
         }
 
         .signup-wrapper {
@@ -20,7 +43,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding-top: 60px; /* leave space for navbar */
+            padding-top: 120px;
         }
 
         .signup-container {
@@ -39,15 +62,12 @@
             font-weight: 700;
         }
 
-        /* Style input boxes like signup page */
         .signup-container .form-control {
             border-radius: 8px;
             padding: 12px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
             border: 1px solid #ddd;
         }
 
-        /* Gradient button like signup */
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -58,22 +78,9 @@
             font-size: 1.1rem;
             font-weight: 600;
         }
-
-        .btn-submit:hover {
-            opacity: 0.9;
-        }
-
-        .text-center a {
-            color: #FF5722;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .text-center a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
+
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -81,6 +88,23 @@
         <a class="navbar-brand" href="/">
             <img src="assets/logo.png" alt="CVision Logo">
         </a>
+
+        <div class="collapse navbar-collapse show">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-pill active" href="/login">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-pill outline" href="/signup">Signup</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
