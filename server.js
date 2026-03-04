@@ -2,28 +2,46 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
-const { Pool } = require('pg');
 const multer = require('multer');
 const fs = require('fs');
 const mammoth = require('mammoth');
 const OpenAI = require('openai');
 require('dotenv').config();
 
+// Import CV analysis functions
+const {
+    calculateProficiency,
+    detectCategory,
+    extractEducationYears,
+    extractIndustryYears,
+    extractPDFText
+} = require('./cvAnalysis');
+
+// Import database operations
+const {
+    saveCVAnalysis,
+    getLatestCVAnalysis,
+    getAllCVAnalyses,
+    getCVAnalysisById,
+    deleteCVAnalysis,
+    saveJobComparison,
+    pool
+} = require('./dbOperations');
+
+// Import job analysis functions
+const {
+    getCommonJobTitles,
+    analyzeJobRequirements,
+    compareSkillsWithJob,
+    calculateCareerReadiness,
+    calculateExperienceRelevance
+} = require('./jobAnalysis');
+
+// Import recruiter routes
+const recruiterRoutes = require('./recruiterRoutes');
+
 const app = express();
 const PORT = 3000;
-
-/* ================================
-   DATABASE CONNECTION
-   ================================ */
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
 
 /* ================================
    FILE UPLOAD & OPENAI SETUP
@@ -47,136 +65,88 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname)));
 
+// Mount recruiter routes
+app.use('/api/recruiter', recruiterRoutes);
+
 /* ================================
-   CV ANALYSIS FUNCTIONS
+   HELPER FUNCTIONS
    ================================ */
 
-async function extractPDFText(filePath) {
-    const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-    const data = new Uint8Array(fs.readFileSync(filePath));
-    const pdf = await pdfjsLib.getDocument({ data }).promise;
-    let text = '';
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(' ');
-        text += pageText + '\n';
-    }
-    return text;
-}
+// LLM-assisted skill proficiency analysis
+async function analyzeSkillProficiency(skills, cvText, industryYears, educationYears) {
+    try {
+        const prompt = `You are an expert CV analyst. Analyze the proficiency level for each skill based on the CV text.
 
-function calculateProficiency(skill, cvText, industryYears, educationYears) {
-    const skillLower = skill.toLowerCase();
-    const textLower = cvText.toLowerCase();
-    const skillIndex = textLower.indexOf(skillLower);
-    
-    if (skillIndex === -1) return estimateByTimeline(industryYears, educationYears);
-    
-    const start = Math.max(0, skillIndex - 200);
-    const end = Math.min(textLower.length, skillIndex + 200);
-    const context = textLower.substring(start, end);
-    
-    const expertKeywords = ['designed', 'architected', 'invented', 'pioneered', 'created framework', 'from scratch', 'published', 'taught', 'leading expert'];
-    if (expertKeywords.some(kw => context.includes(kw))) {
-        return { score: 9, confidence: 'High', basis: 'Expert - Innovation/Creation' };
-    }
-    
-    const advancedKeywords = ['optimized', 'improved', 'debugged complex', 'led', 'mentored', 'reviewed', 'evaluated', 'designed system'];
-    if (advancedKeywords.some(kw => context.includes(kw))) {
-        return { score: 8, confidence: 'High', basis: 'Advanced - Problem solving' };
-    }
-    
-    const intermediateKeywords = ['built', 'developed', 'created', 'implemented', 'worked on', 'contributed', 'deployed', 'managed'];
-    const hasProjects = /\d+\s*(project|app|application|system)/i.test(context);
-    
-    if (intermediateKeywords.some(kw => context.includes(kw)) || hasProjects) {
-        return { score: hasProjects ? 7 : 6, confidence: 'Medium', basis: 'Intermediate - Applied in projects' };
-    }
-    
-    const yearMatch = context.match(/(\d+)\s*year/i);
-    if (yearMatch) {
-        const years = parseInt(yearMatch[1]);
-        return { score: Math.min(3 + years, 8), confidence: 'Medium', basis: `${years} years explicit experience` };
-    }
-    
-    const beginnerKeywords = ['familiar', 'basic', 'learned', 'studied', 'knowledge of', 'exposure to', 'introduced to'];
-    if (beginnerKeywords.some(kw => context.includes(kw))) {
-        return { score: 3, confidence: 'Medium', basis: 'Beginner - Basic knowledge' };
-    }
-    
-    return estimateByTimeline(industryYears, educationYears);
-}
+For each skill, determine:
+1. Proficiency Score (1-10): Based on depth of experience, project complexity, and demonstrated mastery
+2. Bloom's Taxonomy Level: Remember, Understand, Apply, Analyze, Evaluate, or Create
+3. Evidence: Specific phrases from CV that demonstrate this skill
+4. Basis: Brief explanation of why this score was given
 
-function estimateByTimeline(industryYears, educationYears) {
-    if (industryYears >= 1) {
-        if (industryYears === 1) return { score: 3, confidence: 'Very Low', basis: '1 industry year (no evidence)' };
-        if (industryYears === 2) return { score: 3.5, confidence: 'Very Low', basis: '2 industry years (no evidence)' };
-        if (industryYears === 3) return { score: 4, confidence: 'Very Low', basis: '3 industry years (no evidence)' };
-        return { score: 4.5, confidence: 'Very Low', basis: `${industryYears}+ industry years (no evidence)` };
-    }
-    
-    if (!educationYears || educationYears < 1) {
-        return { score: 2, confidence: 'Very Low', basis: 'No timeline info (no evidence)' };
-    } else if (educationYears === 1) {
-        return { score: 2.5, confidence: 'Very Low', basis: '1 education year (no evidence)' };
-    } else if (educationYears === 2) {
-        return { score: 3, confidence: 'Very Low', basis: '2 education years (no evidence)' };
-    } else if (educationYears === 3) {
-        return { score: 3.5, confidence: 'Very Low', basis: '3 education years (no evidence)' };
-    }
-    return { score: 4, confidence: 'Very Low', basis: `${educationYears}+ education years (no evidence)` };
-}
+Scoring Guidelines:
+- 1-3 (Beginner): Basic knowledge, mentioned in passing, no concrete examples
+- 4-6 (Intermediate): Some practical experience, used in projects, moderate complexity
+- 7-8 (Advanced): Extensive experience, led projects, solved complex problems
+- 9-10 (Expert): Mastery level, created solutions, taught others, innovated
 
-function extractEducationYears(education) {
-    if (!education || education.length === 0) return 0;
-    const currentYear = new Date().getFullYear();
-    
-    for (const edu of education) {
-        const yearPattern = /(\d{4})\s*[-–—]\s*(\d{4}|present|current)/i;
-        const match = edu.match(yearPattern);
-        if (match) {
-            const startYear = parseInt(match[1]);
-            const endYear = match[2].toLowerCase() === 'present' || match[2].toLowerCase() === 'current' 
-                ? currentYear : parseInt(match[2]);
-            return endYear - startYear;
+Years of Experience: ${industryYears} industry, ${educationYears} education
+
+Skills to analyze: ${JSON.stringify(skills)}
+
+CV Text (excerpt): ${cvText.substring(0, 2500)}
+
+Respond with a JSON object with "skills" key containing an array:
+{
+  "skills": [
+    {
+      "skill": "skill name",
+      "score": 7,
+      "bloomLevel": "Apply",
+      "evidence": "specific quote from CV",
+      "basis": "explanation of score"
+    }
+  ]
+}`;
+
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+            temperature: 0.3
+        });
+
+        const result = JSON.parse(response.choices[0].message.content);
+        
+        let analysisArray = [];
+        
+        if (Array.isArray(result)) {
+            analysisArray = result;
+        } else if (result.skills && Array.isArray(result.skills)) {
+            analysisArray = result.skills;
+        } else if (result.analyses && Array.isArray(result.analyses)) {
+            analysisArray = result.analyses;
+        } else {
+            const values = Object.values(result);
+            const firstArray = values.find(v => Array.isArray(v));
+            analysisArray = firstArray || [];
         }
         
-        const singleYearPattern = /(?:started|since|from)\s*(\d{4})/i;
-        const singleMatch = edu.match(singleYearPattern);
-        if (singleMatch) return currentYear - parseInt(singleMatch[1]);
+        console.log(`LLM Analysis returned ${analysisArray.length} skill assessments`);
+        return analysisArray;
+        
+    } catch (error) {
+        console.error('Error in LLM skill analysis:', error);
+        return [];
     }
-    return 0;
-}
-
-function extractIndustryYears(experience) {
-    if (!experience || experience.length === 0) return 0;
-    const currentYear = new Date().getFullYear();
-    let totalYears = 0;
-    
-    for (const exp of experience) {
-        const yearPattern = /(\d{4})\s*[-–—]\s*(\d{4}|present|current)/i;
-        const match = exp.match(yearPattern);
-        if (match) {
-            const startYear = parseInt(match[1]);
-            const endYear = match[2].toLowerCase() === 'present' || match[2].toLowerCase() === 'current' 
-                ? currentYear : parseInt(match[2]);
-            totalYears += (endYear - startYear);
-        }
-    }
-    return totalYears;
 }
 
 /* ================================
-   ROUTES
+   AUTHENTICATION ROUTES
    ================================ */
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-/* ================================
-   LOGIN ROUTES
-   ================================ */
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
@@ -192,14 +162,50 @@ app.post('/login', async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(401).send('Invalid email or password');
+            return res.send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Login Error</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <body class="bg-light">
+                    <div class="container mt-5">
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Login Failed</h4>
+                            <p>Invalid email or password. Please try again.</p>
+                            <hr>
+                            <a href="/login" class="btn btn-primary">Back to Login</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
         }
 
         const user = result.rows[0];
         const match = await bcrypt.compare(password, user.password_hash);
 
         if (!match) {
-            return res.status(401).send('Invalid email or password');
+            return res.send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Login Error</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <body class="bg-light">
+                    <div class="container mt-5">
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Login Failed</h4>
+                            <p>Invalid email or password. Please try again.</p>
+                            <hr>
+                            <a href="/login" class="btn btn-primary">Back to Login</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
         }
 
         req.session.userId = user.id;
@@ -214,7 +220,6 @@ app.post('/login', async (req, res) => {
         res.status(500).send('Login failed');
     }
 });
-
 
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'signup.html'));
@@ -246,18 +251,6 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-app.get('/dashboard', (req, res) => {
-    if (!req.session.userId) {
-        return res.redirect('/signup');
-    }
-
-    if (req.session.role === 'recruiter') {
-        res.sendFile(path.join(__dirname, 'dashboard-recruiter.html'));
-    } else {
-        res.sendFile(path.join(__dirname, 'dashboard-user.html'));
-    }
-});
-
 app.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) return res.status(500).send('Logout failed');
@@ -265,6 +258,7 @@ app.post('/logout', (req, res) => {
         res.json({ success: true });
     });
 });
+
 app.get('/profile-data', (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ error: 'Not logged in' });
@@ -273,9 +267,85 @@ app.get('/profile-data', (req, res) => {
     res.json({
         fullName: req.session.fullName,
         role: req.session.role,
-        email: req.session.email // optional unless you store it
+        email: req.session.email
     });
 });
+
+/* ================================
+   DASHBOARD ROUTES
+   ================================ */
+
+app.get('/dashboard', async (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/signup');
+    }
+app.get('/candidate-analysis.html', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/signup');
+    }
+    if (req.session.role !== 'recruiter') {
+        return res.redirect('/dashboard');
+    }
+    res.sendFile(path.join(__dirname, 'candidate-analysis.html'));
+});
+    // Redirect based on role
+    if (req.session.role === 'recruiter') {
+        return res.sendFile(path.join(__dirname, 'dashboard-recruiter.html'));
+    }
+
+    // For regular users, check if they have CV analysis
+    try {
+        const result = await getLatestCVAnalysis(req.session.userId);
+        
+        if (result.success && result.hasAnalysis) {
+            res.sendFile(path.join(__dirname, 'dashboard.html'));
+        } else {
+            res.redirect('/upload');
+        }
+    } catch (error) {
+        console.error('Error checking CV status:', error);
+        res.redirect('/upload');
+    }
+});
+
+app.get('/upload', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/signup');
+    }
+    res.sendFile(path.join(__dirname, 'dashboard-user.html'));
+});
+
+/* ================================
+   USER CV ANALYSIS ROUTES
+   ================================ */
+
+app.get('/api/latest-cv-analysis', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const result = await getLatestCVAnalysis(req.session.userId);
+    res.json(result);
+});
+
+app.get('/api/cv-analyses-history', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const result = await getAllCVAnalyses(req.session.userId);
+    res.json(result);
+});
+
+app.get('/api/cv-analysis/:id', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const result = await getCVAnalysisById(req.session.userId, req.params.id);
+    res.json(result);
+});
+
 app.post('/analyze', upload.single('cvFile'), async (req, res) => {
     try {
         if (!req.file) return res.json({ error: 'No file uploaded' });
@@ -294,7 +364,7 @@ app.post('/analyze', upload.single('cvFile'), async (req, res) => {
             return res.json({ error: 'Could not extract text from file' });
         }
 
-        const response = await openai.chat.completions.create({
+        const extractionResponse = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [{
                 role: 'user',
@@ -311,34 +381,225 @@ CV: ${text.substring(0, 3000)}`
             response_format: { type: 'json_object' }
         });
 
-        const data = JSON.parse(response.choices[0].message.content);
+        const data = JSON.parse(extractionResponse.choices[0].message.content);
         
         const educationYears = extractEducationYears(data.education || []);
         const industryYears = extractIndustryYears(data.experience || []);
         
-        const skillsWithProficiency = (data.skills || []).map(skill => {
-            const proficiency = calculateProficiency(skill, text, industryYears, educationYears);
+        console.log(`\n📄 Analyzing CV: ${data.skills?.length || 0} skills, ${industryYears} years industry experience`);
+
+        console.log('📊 Step 1: LLM analyzing skills...');
+        const llmAnalysis = await analyzeSkillProficiency(
+            data.skills || [], 
+            text, 
+            industryYears, 
+            educationYears
+        );
+
+        console.log('⚙️  Step 2: Processing with hybrid scoring...');
+        const skillsWithProficiency = (data.skills || []).map(skillName => {
+            const categoryInfo = detectCategory(skillName);
+            
+            const llmSkill = llmAnalysis.find(s => 
+                s.skill?.toLowerCase() === skillName.toLowerCase()
+            );
+
+            let finalScore, bloomLevel, evidence, basis, confidence;
+
+            if (llmSkill) {
+                finalScore = llmSkill.score;
+                bloomLevel = llmSkill.bloomLevel || 'Apply';
+                evidence = llmSkill.evidence || '';
+                basis = llmSkill.basis || 'LLM-analyzed';
+                confidence = 'High';
+                
+                console.log(`   ✅ LLM scored "${skillName}": ${finalScore}/10 (${bloomLevel})`);
+            } else {
+                const proficiency = calculateProficiency(skillName, text, industryYears, educationYears);
+                finalScore = proficiency.score;
+                bloomLevel = proficiency.bloomLevel || 'Remember';
+                evidence = '';
+                basis = proficiency.basis;
+                confidence = proficiency.confidence;
+                
+                console.log(`   📝 Rule-based scored "${skillName}": ${finalScore}/10`);
+            }
+
+            let experienceBoost = 0;
+            if (industryYears >= 5) {
+                experienceBoost = Math.min(1, industryYears / 10);
+            }
+
+            finalScore = Math.min(10, finalScore + experienceBoost);
+
             return {
-                name: skill,
-                score: proficiency.score,
-                confidence: proficiency.confidence,
-                basis: proficiency.basis
+                name: skillName,
+                score: parseFloat(finalScore.toFixed(1)),
+                confidence: confidence,
+                basis: basis,
+                bloomLevel: bloomLevel,
+                category: categoryInfo.category,
+                skillType: categoryInfo.type,
+                weight: categoryInfo.weight,
+                evidenceCount: evidence ? 1 : 0,
+                evidencePieces: evidence ? [evidence] : [],
+                skillSource: llmSkill ? 'LLM-analyzed' : 'Rule-based',
+                method: llmSkill ? 'AI Assessment' : 'Pattern Matching',
+                supported: evidence.length > 0 || finalScore >= 5,
+                weightedScore: (finalScore * categoryInfo.weight).toFixed(2)
             };
         });
         
-        res.json({
+        skillsWithProficiency.sort((a, b) => b.weightedScore - a.weightedScore);
+        
+        const skillsByType = {
+            technical: skillsWithProficiency.filter(s => s.skillType === 'technical').length,
+            soft: skillsWithProficiency.filter(s => s.skillType === 'soft').length,
+            business: skillsWithProficiency.filter(s => s.skillType === 'business').length
+        };
+
+        const analysisData = {
             skills: skillsWithProficiency,
             education: data.education || [],
             experience: data.experience || [],
             educationYears: educationYears,
-            industryYears: industryYears
-        });
+            industryYears: industryYears,
+            skillsByType: skillsByType,
+            cvText: text,
+            summary: {
+                totalSkills: skillsWithProficiency.length,
+                strongSkills: skillsWithProficiency.filter(s => s.score >= 7).length,
+                supportedSkills: skillsWithProficiency.filter(s => s.supported).length,
+                averageScore: (skillsWithProficiency.reduce((acc, s) => acc + s.score, 0) / skillsWithProficiency.length).toFixed(2)
+            }
+        };
+
+        console.log(`✅ Analysis complete!\n`);
+
+        if (req.session.userId) {
+            const saveResult = await saveCVAnalysis(req.session.userId, analysisData);
+            if (saveResult.success) {
+                console.log(`💾 CV analysis saved for user ${req.session.userId}`);
+            }
+        }
+        
+        res.json(analysisData);
         
     } catch (error) {
         console.error('Error analyzing CV:', error);
         res.json({ error: error.message });
     }
 });
+
+/* ================================
+   JOB ANALYSIS ROUTES
+   ================================ */
+
+app.get('/api/job-titles', (req, res) => {
+    res.json({ jobTitles: getCommonJobTitles() });
+});
+
+app.post('/api/analyze-job', async (req, res) => {
+    const { jobTitle } = req.body;
+
+    if (!jobTitle) {
+        return res.json({ error: 'Job title is required' });
+    }
+
+    const analysis = await analyzeJobRequirements(jobTitle);
+    res.json(analysis);
+});
+
+app.post('/api/compare-with-job', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    const { jobTitle } = req.body;
+
+    if (!jobTitle) {
+        return res.json({ error: 'Job title is required' });
+    }
+
+    try {
+        const cvResult = await getLatestCVAnalysis(req.session.userId);
+        
+        if (!cvResult.success || !cvResult.hasAnalysis) {
+            return res.json({ error: 'No CV analysis found. Please upload your CV first.' });
+        }
+
+        const userData = cvResult.data;
+        
+        const comparison = await compareSkillsWithJob(
+            userData.skills, 
+            jobTitle,
+            userData.cvText,
+            userData.experience,
+            userData.education
+        );
+
+        if (comparison.error) {
+            return res.json({ error: comparison.error });
+        }
+
+        const readinessResult = calculateCareerReadiness(
+            userData.skills,
+            userData.industryYears,
+            userData.educationYears,
+            comparison
+        );
+
+        const relevanceResult = calculateExperienceRelevance(
+            userData.industryYears,
+            userData.educationYears,
+            userData.skills,
+            comparison
+        );
+
+        const comparisonToSave = {
+            jobTitle,
+            jobRequirements: comparison.jobRequirements,
+            skillComparison: comparison.skillComparison,
+            metrics: { 
+                readinessScore: readinessResult.score, 
+                relevanceScore: relevanceResult.score 
+            }
+        };
+
+        const saveResult = await saveJobComparison(
+            req.session.userId, 
+            userData.analysisId, 
+            comparisonToSave
+        );
+
+        if (saveResult.success) {
+            console.log(`✅ Job comparison saved for user ${req.session.userId}`);
+        }
+
+        res.json({
+            ...comparison,
+            metrics: {
+                readiness: readinessResult,
+                relevance: relevanceResult
+            },
+            userData: {
+                totalSkills: userData.skills.length,
+                strongSkills: userData.skills.filter(s => s.score >= 7).length,
+                industryYears: userData.industryYears,
+                educationYears: userData.educationYears
+            },
+            saved: saveResult.success
+        });
+
+    } catch (error) {
+        console.error('Error in job comparison:', error);
+        res.json({ error: error.message });
+    }
+});
+
+/* ================================
+   OTHER ROUTES
+   ================================ */
 
 app.get('/results', (req, res) => {
     if (!req.session.userId) {
@@ -347,32 +608,30 @@ app.get('/results', (req, res) => {
     res.sendFile(path.join(__dirname, 'results.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`CVision running at http://localhost:${PORT}`);
-    if (!process.env.OPENAI_API_KEY) {
-        console.log('⚠️  Warning: OPENAI_API_KEY not found');
-    }
-});
-console.log(
-  "OPENAI KEY CHECK:",
-  process.env.OPENAI_API_KEY,
-  "length:",
-  process.env.OPENAI_API_KEY?.length
-);
 app.get('/session-info', (req, res) => {
     if (req.session.userId) {
         return res.json({
             loggedIn: true,
-            fullName: req.session.fullName
+            fullName: req.session.fullName,
+            role: req.session.role
         });
     }
     res.json({ loggedIn: false });
 });
+
 app.get('/profile', (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login');
     }
-
     res.sendFile(path.join(__dirname, 'profile.html'));
 });
 
+app.listen(PORT, () => {
+    console.log(`✅ CVision running at http://localhost:${PORT}`);
+    console.log(`   User Dashboard: /dashboard`);
+    console.log(`   Recruiter Dashboard: /dashboard (for recruiter role)`);
+    console.log(`   API Routes: /api/recruiter/*`);
+    if (!process.env.OPENAI_API_KEY) {
+        console.log('⚠️  Warning: OPENAI_API_KEY not found');
+    }
+});

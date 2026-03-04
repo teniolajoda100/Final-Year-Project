@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recruiter Dashboard - CVision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <link href="css/recruiter-dashboard.css" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="assets/logo.png" alt="CVision Logo">
+        </a>
+
+        <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item"><a class="nav-link active" href="/dashboard">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
+            <li class="nav-item">
+                <a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a>
+            </li>
+            <li class="nav-item ms-3">
+                <a href="/profile" class="profile-btn">
+                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- DASHBOARD CONTENT -->
+<div class="dashboard-wrapper">
+    
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1><i class="bi bi-people"></i> Recruiter Dashboard</h1>
+        <p id="welcomeText">Welcome back! Manage your candidates and track hiring progress.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Candidates</h3>
+            <div class="value" id="totalCandidates">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Pending Review</h3>
+            <div class="value" id="pendingCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Shortlisted</h3>
+            <div class="value" id="shortlistedCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Hired</h3>
+            <div class="value" id="hiredCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Avg Match %</h3>
+            <div class="value" id="avgMatch">0%</div>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="upload-section">
+        <h2><i class="bi bi-upload"></i> Upload New Candidate CV</h2>
+        
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button">
+                    <i class="bi bi-file-person"></i> Quick Upload
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed-panel" type="button">
+                    <i class="bi bi-file-text"></i> With Job Description
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            
+            <!-- QUICK UPLOAD TAB -->
+            <div class="tab-pane fade show active" id="upload-panel">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="upload-form-grid">
+                        <div>
+                            <label class="form-label">Candidate Name *</label>
+                            <input type="text" class="form-control" id="candidateName" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Position Applied *</label>
+                            <input type="text" class="form-control" id="jobTitle" required placeholder="e.g. Software Engineer">
+                            <small class="text-muted">We'll analyse requirements automatically</small>
+                        </div>
+                        <div>
+                            <label class="form-label">Email (optional)</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div>
+                            <label class="form-label">Phone (optional)</label>
+                            <input type="tel" class="form-control" id="phone">
+                        </div>
+                        <div class="full-width">
+                            <label class="form-label">CV File (PDF, DOC, DOCX) *</label>
+                            <input type="file" class="form-control" id="cvFile" accept=".pdf,.doc,.docx" required>
+                        </div>
+                        <div class="full-width">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
+                                <i class="bi bi-cloud-upload"></i> Analyse Candidate CV
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- DETAILED UPLOAD WITH JOB DESCRIPTION TAB -->
+            <div class="tab-pane fade" id="detailed-panel">
+                <form id="detailedUploadForm" enctype="multipart/form-data">
+                    <div class="upload-form-grid">
+                        <div>
+                            <label class="form-label">Candidate Name *</label>
+                            <input type="text" class="form-control" id="candidateNameDetailed" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Position Applied *</label>
+                            <input type="text" class="form-control" id="jobTitleDetailed" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Email (optional)</label>
+                            <input type="email" class="form-control" id="emailDetailed">
+                        </div>
+                        <div>
+                            <label class="form-label">Phone (optional)</label>
+                            <input type="tel" class="form-control" id="phoneDetailed">
+                        </div>
+                        <div class="full-width">
+                            <label class="form-label">Candidate CV File *</label>
+                            <input type="file" class="form-control" id="cvFileDetailed" accept=".pdf,.doc,.docx" required>
+                        </div>
+                        <div class="full-width">
+                            <label class="form-label">
+                                <i class="bi bi-file-text"></i> Job Description *
+                            </label>
+                            <div class="job-description-options">
+                                <div class="btn-group w-100 mb-3" role="group">
+                                    <input type="radio" class="btn-check" name="jdOption" id="jdText" value="text" checked>
+                                    <label class="btn btn-outline-primary" for="jdText">
+                                        <i class="bi bi-keyboard"></i> Paste Text
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="jdOption" id="jdFile" value="file">
+                                    <label class="btn btn-outline-primary" for="jdFile">
+                                        <i class="bi bi-file-earmark-text"></i> Upload File
+                                    </label>
+                                </div>
+
+                                <!-- Text Area Option -->
+                                <div id="jdTextArea" class="jd-option">
+                                    <textarea class="form-control" id="jobDescriptionText" rows="8" placeholder="Paste the full job description here...
+
+Example:
+We are seeking a Senior Software Engineer with 5+ years experience in:
+- React, Node.js, TypeScript
+- AWS cloud services
+- Leading technical teams
+..." required></textarea>
+                                </div>
+
+                                <!-- File Upload Option -->
+                                <div id="jdFileArea" class="jd-option" style="display: none;">
+                                    <input type="file" class="form-control" id="jobDescriptionFile" accept=".pdf,.doc,.docx,.txt" required>
+                                    <small class="text-muted">Upload job description as PDF, DOC, DOCX, or TXT</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="full-width">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="detailedUploadBtn">
+                                <i class="bi bi-rocket"></i> Analyse with Job Description
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <label>Filter by Status:</label>
+        <span class="filter-badge active" data-status="all">All</span>
+        <span class="filter-badge" data-status="pending">Pending</span>
+        <span class="filter-badge" data-status="shortlisted">Shortlisted</span>
+        <span class="filter-badge" data-status="interviewing">Interviewing</span>
+        <span class="filter-badge" data-status="hired">Hired</span>
+        <span class="filter-badge" data-status="rejected">Rejected</span>
+    </div>
+
+    <!-- Candidates Grid -->
+    <h2 style="margin-bottom: 20px; font-weight: 700;">Your Candidates</h2>
+    <div class="candidates-grid" id="candidatesGrid">
+        <div class="empty-state">
+            <i class="bi bi-hourglass-split"></i>
+            <p>Loading candidates...</p>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let allCandidates = [];
+    let currentFilter = 'all';
+
+    // Load stats
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/recruiter/stats', { credentials: 'include' });
+            const result = await response.json();
+
+            if (result.success) {
+                const stats = result.stats;
+                document.getElementById('totalCandidates').textContent = stats.total_candidates || 0;
+                document.getElementById('pendingCount').textContent = stats.pending || 0;
+                document.getElementById('shortlistedCount').textContent = stats.shortlisted || 0;
+                document.getElementById('hiredCount').textContent = stats.hired || 0;
+                
+                const avgMatch = stats.avg_match_percentage ? Math.round(stats.avg_match_percentage) : 0;
+                document.getElementById('avgMatch').textContent = avgMatch + '%';
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    // Load candidates
+    async function loadCandidates(status = null) {
+        try {
+            const url = status ? `/api/recruiter/candidates?status=${status}` : '/api/recruiter/candidates';
+            const response = await fetch(url, { credentials: 'include' });
+            const result = await response.json();
+
+            if (result.success) {
+                allCandidates = result.candidates;
+                displayCandidates(allCandidates);
+            }
+        } catch (error) {
+            console.error('Error loading candidates:', error);
+        }
+    }
+
+    // Display candidates
+    function displayCandidates(candidates) {
+        const grid = document.getElementById('candidatesGrid');
+
+        if (candidates.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>No candidates found. Upload your first candidate CV above!</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = candidates.map(c => {
+            const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const matchPercent = c.match_percentage || 0;
+            const relevancePercent = c.experience_relevance_score || 0;
+
+            return `
+                <div class="candidate-card" onclick="viewCandidate(${c.id})">
+                    <span class="status-badge ${c.status}">${c.status}</span>
+                    
+                    <div class="card-header">
+                        <div class="candidate-avatar">${initials}</div>
+                        <div class="candidate-info">
+                            <h3>${c.name}</h3>
+                            <p class="position">${c.position_applied}</p>
+                        </div>
+                    </div>
+
+                    <div class="match-score">
+                        <div class="match-item">
+                            <div class="label">Match</div>
+                            <div class="value">${matchPercent}%</div>
+                        </div>
+                        <div class="match-item">
+                            <div class="label">Experience</div>
+                            <div class="value">${relevancePercent}%</div>
+                        </div>
+                    </div>
+
+                    <div class="match-bar">
+                        <div class="match-bar-fill" style="width: ${matchPercent}%"></div>
+                    </div>
+
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
+                        <i class="bi bi-calendar"></i> Uploaded: ${new Date(c.uploaded_at).toLocaleDateString()}
+                    </div>
+
+                    <div class="card-footer">
+                        <button class="card-btn btn-view" onclick="event.stopPropagation(); viewCandidate(${c.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        ${c.status === 'pending' ? `
+                            <button class="card-btn btn-shortlist" onclick="event.stopPropagation(); updateStatus(${c.id}, 'shortlisted')">
+                                <i class="bi bi-star"></i> Shortlist
+                            </button>
+                            <button class="card-btn btn-reject" onclick="event.stopPropagation(); updateStatus(${c.id}, 'rejected')">
+                                <i class="bi bi-x"></i> Reject
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // View candidate
+    function viewCandidate(candidateId) {
+        window.location.href = `/candidate-analysis.html?id=${candidateId}`;
+    }
+
+    // Update status
+    async function updateStatus(candidateId, status) {
+        if (!confirm(`Change status to ${status}?`)) return;
+
+        try {
+            const response = await fetch(`/api/recruiter/candidates/${candidateId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ status })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                loadCandidates();
+                loadStats();
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Error updating candidate status');
+        }
+    }
+
+    // Upload candidate CV (Quick)
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('uploadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Analysing...';
+
+        const formData = new FormData();
+        formData.append('cvFile', document.getElementById('cvFile').files[0]);
+        formData.append('candidateName', document.getElementById('candidateName').value);
+        formData.append('jobTitle', document.getElementById('jobTitle').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('phone', document.getElementById('phone').value);
+
+        try {
+            const response = await fetch('/api/recruiter/candidates/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Analysis Complete!\n\nMatch: ${data.analysis.matchPercentage}%\nRecommendation: ${data.analysis.hiringRecommendation}`);
+                document.getElementById('uploadForm').reset();
+                loadCandidates();
+                loadStats();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error uploading candidate CV');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-upload"></i> Analyse Candidate CV';
+        }
+    });
+
+    // Job Description Option Toggle
+    document.querySelectorAll('input[name="jdOption"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            document.querySelectorAll('.jd-option').forEach(opt => opt.style.display = 'none');
+            
+            if (e.target.value === 'text') {
+                document.getElementById('jdTextArea').style.display = 'block';
+            } else if (e.target.value === 'file') {
+                document.getElementById('jdFileArea').style.display = 'block';
+            }
+        });
+    });
+
+    // Detailed Upload with Job Description
+    document.getElementById('detailedUploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('detailedUploadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Analysing with Job Description...';
+
+        const formData = new FormData();
+        formData.append('cvFile', document.getElementById('cvFileDetailed').files[0]);
+        formData.append('candidateName', document.getElementById('candidateNameDetailed').value);
+        formData.append('jobTitle', document.getElementById('jobTitleDetailed').value);
+        formData.append('email', document.getElementById('emailDetailed').value);
+        formData.append('phone', document.getElementById('phoneDetailed').value);
+
+        // Add job description based on selection
+        const jdOption = document.querySelector('input[name="jdOption"]:checked').value;
+        
+        if (jdOption === 'text') {
+            const jdText = document.getElementById('jobDescriptionText').value;
+            if (jdText.trim()) {
+                formData.append('jobDescription', jdText);
+            } else {
+                alert('Please paste the job description text');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
+                return;
+            }
+        } else if (jdOption === 'file') {
+            const jdFile = document.getElementById('jobDescriptionFile').files[0];
+            if (jdFile) {
+                formData.append('jobDescriptionFile', jdFile);
+            } else {
+                alert('Please upload a job description file');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
+                return;
+            }
+        }
+
+        try {
+            const response = await fetch('/api/recruiter/candidates/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Detailed Analysis Complete!\n\nMatch: ${data.analysis.matchPercentage}%\nExperience: ${data.analysis.experienceRelevanceScore}%\n\n${data.analysis.hiringRecommendation}`);
+                document.getElementById('detailedUploadForm').reset();
+                loadCandidates();
+                loadStats();
+                
+                // Switch back to first tab
+                document.getElementById('upload-tab').click();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error uploading candidate CV');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
+        }
+    });
+
+    // Filter badges
+    document.querySelectorAll('.filter-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
+            badge.classList.add('active');
+            
+            const status = badge.dataset.status;
+            currentFilter = status;
+
+            if (status === 'all') {
+                displayCandidates(allCandidates);
+            } else {
+                const filtered = allCandidates.filter(c => c.status === status);
+                displayCandidates(filtered);
+            }
+        });
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (confirm('Logout?')) {
+            await fetch('/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+    });
+
+    // Load on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        loadCandidates();
+    });
+</script>
+
+</body>
+</html>

@@ -78,6 +78,25 @@
             font-size: 1.1rem;
             font-weight: 600;
         }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,87,34,0.3);
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
     </style>
 </head>
 
@@ -112,7 +131,9 @@
     <div class="signup-container">
         <h1>Login</h1>
 
-        <form method="POST" action="/login">
+        <div class="error-message" id="errorMessage"></div>
+
+        <form id="loginForm">
             <div class="mb-3">
                 <label class="form-label">Email</label>
                 <input name="email" type="email" class="form-control" required>
@@ -127,10 +148,50 @@
         </form>
 
         <div class="text-center mt-3">
-            <p>Don’t have an account? <a href="/signup">Create one</a></p>
+            <p>Don't have an account? <a href="/signup">Create one</a></p>
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
+        
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    email: email,
+                    password: password
+                })
+            });
+            
+            const text = await response.text();
+            
+            // Check if response is an error page
+            if (text.includes('Login Failed')) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = 'Invalid email or password. Please try again.';
+                errorDiv.classList.add('show');
+            } else {
+                // Successful login, redirect
+                window.location.href = '/dashboard';
+            }
+            
+        } catch (error) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.add('show');
+        }
+    });
+</script>
 
 </body>
 </html>

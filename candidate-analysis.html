@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Candidate Analysis - CVision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .analysis-wrapper {
+            max-width: 1400px;
+            margin: 100px auto 60px;
+            padding: 20px;
+        }
+
+        .candidate-header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #333;
+        }
+
+        .candidate-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .candidate-header .position {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-badge.pending { background: #FFF3CD; color: #856404; }
+        .status-badge.shortlisted { background: #D1ECF1; color: #0C5460; }
+        .status-badge.interviewing { background: #D4EDDA; color: #155724; }
+        .status-badge.hired { background: #D4EDDA; color: #155724; }
+        .status-badge.rejected { background: #F8D7DA; color: #721C24; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .chart-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .metric-banner {
+            background: linear-gradient(135deg, #5f8fd6 0%, #3f6fb0 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-banner h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .metric-banner .score {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .feedback-card {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .feedback-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: #2C3E50;
+        }
+
+        .feedback-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feedback-card li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .strengths-card li { border-left: 4px solid #4CAF50; }
+        .gaps-card li { border-left: 4px solid #F44336; }
+
+        .training-section {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .training-section h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: #2C3E50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-shortlist {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
+        .btn-shortlist:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76,175,80,0.3);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #F44336, #E57373);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244,67,54,0.3);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #5f8fd6, #3f6fb0);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(95,143,214,0.3);
+        }
+
+        .btn-back {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #333;
+        }
+
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+
+        /* Skill Detail Modal */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9998;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-backdrop.show {
+            display: block;
+        }
+
+        .skill-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+        }
+
+        .skill-modal.show {
+            display: block;
+        }
+
+        .skill-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .skill-modal .modal-header h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #2C3E50;
+        }
+
+        .skill-modal .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .skill-modal .close-btn:hover {
+            color: #333;
+        }
+
+        .skill-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .skill-detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .skill-detail-item label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .skill-detail-item .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2C3E50;
+        }
+
+        .skill-score-visual {
+            margin: 20px 0;
+        }
+
+        .score-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5f8fd6, #3f6fb0);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .evidence-section {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #5f8fd6;
+        }
+
+        .evidence-section h4 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #2C3E50;
+        }
+
+        .evidence-section p {
+            margin: 0;
+            color: #555;
+        }
+
+        .evidence-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .evidence-section li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid,
+            .feedback-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .skill-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="assets/logo.png" alt="CVision Logo">
+        </a>
+
+        <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
+            <li class="nav-item">
+                <a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a>
+            </li>
+            <li class="nav-item ms-3">
+                <a href="/profile" class="profile-btn">
+                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ANALYSIS CONTENT -->
+<div class="analysis-wrapper">
+    
+    <!-- Candidate Header -->
+    <div class="candidate-header">
+        <h1 id="candidateName">Loading...</h1>
+        <div class="position" id="positionApplied">Position</div>
+        <span class="status-badge" id="statusBadge">pending</span>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+        <!-- Skills Level Results -->
+        <div class="chart-card">
+            <h2>Skills Level Results</h2>
+            <p>Bar charts showing skill levels using Bloom's Taxonomy. <strong>Click bars for details.</strong></p>
+            <canvas id="skillsChart"></canvas>
+        </div>
+
+        <!-- Required vs Actual Skills -->
+        <div class="chart-card">
+            <h2>Required vs Actual Skills</h2>
+            <p>Radar chart comparison</p>
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Experience Relevance Score -->
+    <div class="metric-banner">
+        <h3>Experience Relevance Score</h3>
+        <div class="score" id="relevanceScore">--</div>
+    </div>
+
+    <!-- Strengths & Skill Gaps -->
+    <div class="feedback-grid">
+        <div class="feedback-card strengths-card">
+            <h3><i class="bi bi-check-circle"></i> Strengths</h3>
+            <ul id="strengthsList"></ul>
+        </div>
+
+        <div class="feedback-card gaps-card">
+            <h3><i class="bi bi-exclamation-triangle"></i> Skill Gaps</h3>
+            <ul id="gapsList"></ul>
+        </div>
+    </div>
+
+    <!-- Recommended Training -->
+    <div class="training-section">
+        <h3><i class="bi bi-book"></i> Recommended Training if Hired</h3>
+        <ul id="trainingList"></ul>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="action-btn btn-back" onclick="window.location.href='/dashboard'">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </button>
+        <button class="action-btn btn-shortlist" id="shortlistBtn">
+            <i class="bi bi-star"></i> Shortlist Candidate
+        </button>
+        <button class="action-btn btn-reject" id="rejectBtn">
+            <i class="bi bi-x-circle"></i> Reject
+        </button>
+        <button class="action-btn btn-export" id="exportBtn">
+            <i class="bi bi-file-pdf"></i> Export Report (PDF)
+        </button>
+    </div>
+
+</div>
+
+<!-- Skill Detail Modal -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeSkillModal()"></div>
+<div class="skill-modal" id="skillModal">
+    <div class="modal-header">
+        <h3 id="skillModalTitle">Skill Name</h3>
+        <button class="close-btn" onclick="closeSkillModal()">&times;</button>
+    </div>
+    
+    <div class="skill-score-visual">
+        <div class="score-bar">
+            <div class="score-fill" id="skillScoreFill">0/10</div>
+        </div>
+    </div>
+
+    <div class="skill-detail-grid">
+        <div class="skill-detail-item">
+            <label>Bloom's Level</label>
+            <div class="value" id="skillBloomLevel">--</div>
+        </div>
+        <div class="skill-detail-item">
+            <label>Proficiency Level</label>
+            <div class="value" id="skillProficiency">--</div>
+        </div>
+        <div class="skill-detail-item">
+            <label>Has Skill?</label>
+            <div class="value" id="skillHasSkill">--</div>
+        </div>
+        <div class="skill-detail-item">
+            <label>Assessment Source</label>
+            <div class="value" id="skillSource">--</div>
+        </div>
+    </div>
+
+    <div class="evidence-section" style="margin-top: 20px;">
+        <h4><i class="bi bi-clipboard-check"></i> Evidence from CV</h4>
+        <p id="skillEvidence" style="font-style: italic;"></p>
+    </div>
+
+    <div class="evidence-section" style="margin-top: 15px;">
+        <h4><i class="bi bi-info-circle"></i> Assessment Basis</h4>
+        <p id="skillBasis"></p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let skillsChartInstance = null;
+    let radarChartInstance = null;
+    let candidateData = null;
+    let globalSkillsData = [];
+
+    // Get candidate ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const candidateId = urlParams.get('id');
+
+    if (!candidateId) {
+        alert('No candidate ID provided');
+        window.location.href = '/dashboard';
+    }
+
+    // Load candidate data
+    async function loadCandidateAnalysis() {
+        try {
+            const response = await fetch(`/api/recruiter/candidates/${candidateId}`, {
+                credentials: 'include'
+            });
+            const result = await response.json();
+
+            if (!result.success) {
+                alert('Failed to load candidate: ' + result.message);
+                window.location.href = '/dashboard';
+                return;
+            }
+
+            candidateData = result.candidate;
+            displayAnalysis(candidateData);
+
+        } catch (error) {
+            console.error('Error loading candidate:', error);
+            alert('Error loading candidate analysis');
+        }
+    }
+
+    function displayAnalysis(candidate) {
+        // Header
+        document.getElementById('candidateName').textContent = candidate.name || 'Unknown Candidate';
+        document.getElementById('positionApplied').textContent = candidate.position_applied || 'Position';
+        
+        const statusBadge = document.getElementById('statusBadge');
+        statusBadge.textContent = candidate.status || 'pending';
+        statusBadge.className = `status-badge ${candidate.status || 'pending'}`;
+
+        // Parse skills (JSONB from database)
+        const skills = candidate.skills || [];
+        globalSkillsData = skills;
+        const jobComparison = candidate.job_comparison || {};
+
+        // Skills Bar Chart with Click Handler
+        if (skills.length > 0) {
+            const skillNames = skills.slice(0, 10).map(s => s.skill || s.name);
+            const skillScores = skills.slice(0, 10).map(s => s.score || 5);
+
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            skillsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: skillNames,
+                    datasets: [{
+                        label: 'Proficiency (1-10)',
+                        data: skillScores,
+                        backgroundColor: 'rgba(95, 143, 214, 0.8)',
+                        borderColor: 'rgba(95, 143, 214, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            showSkillDetail(index);
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 10,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return 'Click for detailed breakdown';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Radar Chart - Required vs Actual
+        const requiredSkills = jobComparison.requiredSkills || [];
+        const matchedSkills = jobComparison.matchedRequired || [];
+        const radarLabels = requiredSkills.slice(0, 6);
+        
+        const userScores = radarLabels.map(reqSkill => {
+            const matched = skills.find(s => 
+                (s.skill || s.name).toLowerCase() === reqSkill.toLowerCase()
+            );
+            return matched ? matched.score : 0;
+        });
+
+        const requiredScores = radarLabels.map(() => 7); // Assume 7/10 required
+
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        radarChartInstance = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: radarLabels,
+                datasets: [
+                    {
+                        label: 'Required',
+                        data: requiredScores,
+                        borderColor: 'rgba(95, 143, 214, 1)',
+                        backgroundColor: 'rgba(95, 143, 214, 0.2)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Actual',
+                        data: userScores,
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    r: { beginAtZero: true, max: 10 }
+                }
+            }
+        });
+
+        // Experience Relevance Score
+        document.getElementById('relevanceScore').textContent = 
+            `${candidate.experience_relevance_score || 0}%`;
+
+        // Strengths
+        const strengths = candidate.strengths || [];
+        const strengthsList = document.getElementById('strengthsList');
+        strengthsList.innerHTML = strengths.length > 0
+            ? strengths.map(s => `<li>${s}</li>`).join('')
+            : '<li>No strengths data available</li>';
+
+        // Skill Gaps
+        const gaps = candidate.skill_gaps || [];
+        const gapsList = document.getElementById('gapsList');
+        gapsList.innerHTML = gaps.length > 0
+            ? gaps.map(g => `<li>${g}</li>`).join('')
+            : '<li>No skill gaps identified</li>';
+
+        // Recommended Training
+        const training = candidate.recommended_training || [];
+        const trainingList = document.getElementById('trainingList');
+        trainingList.innerHTML = training.length > 0
+            ? training.map(t => `<li>${t}</li>`).join('')
+            : '<li>No training recommendations</li>';
+    }
+
+    // Show Skill Detail Modal
+    function showSkillDetail(skillIndex) {
+        const skill = globalSkillsData[skillIndex];
+        if (!skill) return;
+
+        document.getElementById('skillModalTitle').textContent = skill.skill || skill.name;
+        document.getElementById('skillBloomLevel').textContent = skill.bloomLevel || 'N/A';
+        document.getElementById('skillProficiency').textContent = skill.proficiencyLevel || 'Intermediate';
+        document.getElementById('skillHasSkill').textContent = skill.hasSkill ? 'Yes ✓' : 'No ✗';
+        document.getElementById('skillSource').textContent = 'AI Assessment';
+        document.getElementById('skillEvidence').textContent = skill.evidence || 'No specific evidence provided';
+        document.getElementById('skillBasis').textContent = skill.basis || 'Assessed based on CV content and experience level';
+
+        const scoreFill = document.getElementById('skillScoreFill');
+        scoreFill.textContent = `${skill.score}/10`;
+        scoreFill.style.width = `${(skill.score / 10) * 100}%`;
+
+        document.getElementById('modalBackdrop').classList.add('show');
+        document.getElementById('skillModal').classList.add('show');
+    }
+
+    function closeSkillModal() {
+        document.getElementById('modalBackdrop').classList.remove('show');
+        document.getElementById('skillModal').classList.remove('show');
+    }
+
+    // Action Buttons
+    document.getElementById('shortlistBtn').addEventListener('click', async () => {
+        if (confirm('Shortlist this candidate?')) {
+            await updateStatus('shortlisted');
+        }
+    });
+
+    document.getElementById('rejectBtn').addEventListener('click', async () => {
+        if (confirm('Reject this candidate?')) {
+            await updateStatus('rejected');
+        }
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        alert('PDF export feature coming soon!');
+        // TODO: Implement PDF generation
+    });
+
+    async function updateStatus(status) {
+        try {
+            const response = await fetch(`/api/recruiter/candidates/${candidateId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ status })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`Candidate ${status}!`);
+                location.reload();
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Error updating candidate status');
+        }
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (confirm('Logout?')) {
+            await fetch('/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+    });
+
+    // Load on page load
+    loadCandidateAnalysis();
+</script>
+
+</body>
+</html>
