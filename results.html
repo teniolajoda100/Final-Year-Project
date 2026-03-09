@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -230,9 +229,9 @@
             background: white;
             border-radius: 12px;
             padding: 30px;
-            max-width: 600px;
+            max-width: 700px;
             width: 90%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             z-index: 9999;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
@@ -328,6 +327,7 @@
             padding: 15px;
             border-radius: 6px;
             border-left: 4px solid #6BA3D5;
+            margin-top: 15px;
         }
 
         .evidence-section h4 {
@@ -336,13 +336,19 @@
             color: #2C3E50;
         }
 
-        .evidence-section ul {
+        .evidence-section p {
             margin: 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .evidence-section ul {
+            margin: 10px 0 0 0;
             padding-left: 20px;
         }
 
         .evidence-section li {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #555;
         }
 
@@ -424,14 +430,13 @@
             <input type="text" id="customJob" placeholder="Type custom job title..." class="form-control">
             <button id="analyzeJobBtn">Analyze Match</button>
         </div>
-        <div id="jobAnalysisResult" style="margin-top: 20px; display: none;"></div>
     </div>
 
     <div class="results-grid">
         <!-- Skills Level Results -->
         <div class="results-card">
             <h2>Skills Level Results</h2>
-            <p>Bar charts showing skill levels assessed using Bloom's Taxonomy. Click bars for details.</p>
+            <p>Bar charts showing skill levels assessed using Bloom's Taxonomy. <strong>Click bars for details.</strong></p>
             <canvas id="skillsChart"></canvas>
         </div>
 
@@ -494,27 +499,39 @@
             <div class="value" id="skillBloomLevel">--</div>
         </div>
         <div class="skill-detail-item">
-            <label>Confidence</label>
-            <div class="value" id="skillConfidence">--</div>
+            <label>Proficiency</label>
+            <div class="value" id="skillProficiency">--</div>
         </div>
         <div class="skill-detail-item">
             <label>Category</label>
             <div class="value" id="skillCategory">--</div>
         </div>
         <div class="skill-detail-item">
-            <label>Source</label>
-            <div class="value" id="skillSource">--</div>
+            <label>Confidence</label>
+            <div class="value" id="skillConfidence">--</div>
         </div>
     </div>
 
-    <div class="evidence-section" style="margin-top: 20px;">
-        <h4><i class="bi bi-clipboard-check"></i> Assessment Basis</h4>
-        <p id="skillBasis" style="margin: 0; color: #555;"></p>
+    <!-- Bloom's Taxonomy Explanation -->
+    <div class="evidence-section" style="background: #fff3e0; border-left-color: #ff9800;">
+        <h4><i class="bi bi-mortarboard"></i> Understanding Bloom's Taxonomy</h4>
+        <p id="bloomExplanation"></p>
     </div>
 
-    <div class="evidence-section" style="margin-top: 15px;" id="evidenceSection">
-        <h4><i class="bi bi-file-text"></i> Evidence Found</h4>
-        <ul id="evidenceList"></ul>
+    <div class="evidence-section">
+        <h4><i class="bi bi-clipboard-check"></i> Evidence from Your CV</h4>
+        <p id="skillEvidence" style="font-style: italic;"></p>
+    </div>
+
+    <div class="evidence-section">
+        <h4><i class="bi bi-info-circle"></i> Assessment Basis</h4>
+        <p id="skillBasis"></p>
+    </div>
+
+    <!-- Improvement Recommendations -->
+    <div class="evidence-section" style="background: #e8f5e9; border-left-color: #4caf50;">
+        <h4><i class="bi bi-graph-up-arrow"></i> How to Improve This Skill</h4>
+        <ul id="improvementList"></ul>
     </div>
 </div>
 
@@ -526,7 +543,7 @@
     let globalSkillsData = [];
     let globalResultsData = null;
 
-    // ===== LOAD JOB TITLES FOR DROPDOWN =====
+    // Load job titles
     async function loadJobTitles() {
         try {
             const response = await fetch('/api/job-titles');
@@ -544,110 +561,97 @@
         }
     }
 
-// ===== ANALYZE JOB MATCH WITH DETAILED FEEDBACK =====
-document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
-    const selectedJob = document.getElementById('jobSelect').value;
-    const customJob = document.getElementById('customJob').value.trim();
-    
-    const jobTitle = customJob || selectedJob;
-    
-    if (!jobTitle || jobTitle === 'undefined') {
-        alert('Please select or enter a valid job title');
-        return;
-    }
-
-    const btn = document.getElementById('analyzeJobBtn');
-    btn.disabled = true;
-    btn.textContent = 'Analyzing...';
-
-    try {
-        const response = await fetch('/api/compare-with-job', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ jobTitle })
-        });
-
-        const result = await response.json();
+    // Analyze job match
+    document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
+        const selectedJob = document.getElementById('jobSelect').value;
+        const customJob = document.getElementById('customJob').value.trim();
         
-        console.log('Job comparison result:', result); // DEBUG
-
-        if (result.error) {
-            alert('Error: ' + result.error);
+        const jobTitle = customJob || selectedJob;
+        
+        if (!jobTitle) {
+            alert('Please select or enter a job title');
             return;
         }
 
-        // FIXED: Access the score property from the nested objects
-        const readinessData = result.metrics.readiness || { score: 0, reasons: [], verdict: 'Unknown' };
-        const relevanceData = result.metrics.relevance || { score: 0, reasons: [], verdict: 'Unknown' };
+        const btn = document.getElementById('analyzeJobBtn');
+        btn.disabled = true;
+        btn.textContent = 'Analyzing...';
 
-        // Update metric scores
-        document.getElementById('readinessScore').textContent = `${readinessData.score}%`;
-        document.getElementById('relevanceScore').textContent = `${relevanceData.score}%`;
+        try {
+            const response = await fetch('/api/compare-with-job', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ jobTitle })
+            });
 
-        console.log('Readiness:', readinessData.score, 'Relevance:', relevanceData.score); // DEBUG
+            const result = await response.json();
 
-        // Add verdict below score (optional but recommended)
-        const readinessCard = document.getElementById('readinessScore').closest('.metric-card');
-        const relevanceCard = document.getElementById('relevanceScore').closest('.metric-card');
-        
-        // Add or update verdict text
-        let readinessVerdictEl = readinessCard.querySelector('.verdict-text');
-        if (!readinessVerdictEl) {
-            readinessVerdictEl = document.createElement('p');
-            readinessVerdictEl.className = 'verdict-text';
-            readinessVerdictEl.style.fontSize = '0.9rem';
-            readinessVerdictEl.style.fontWeight = '600';
-            readinessVerdictEl.style.marginTop = '10px';
-            document.getElementById('readinessScore').after(readinessVerdictEl);
+            if (result.error) {
+                alert('Error: ' + result.error);
+                return;
+            }
+
+            const readinessData = result.metrics.readiness || { score: 0, reasons: [], verdict: 'Unknown' };
+            const relevanceData = result.metrics.relevance || { score: 0, reasons: [], verdict: 'Unknown' };
+
+            document.getElementById('readinessScore').textContent = `${readinessData.score}%`;
+            document.getElementById('relevanceScore').textContent = `${relevanceData.score}%`;
+
+            const readinessCard = document.getElementById('readinessScore').closest('.metric-card');
+            const relevanceCard = document.getElementById('relevanceScore').closest('.metric-card');
+            
+            let readinessVerdictEl = readinessCard.querySelector('.verdict-text');
+            if (!readinessVerdictEl) {
+                readinessVerdictEl = document.createElement('p');
+                readinessVerdictEl.className = 'verdict-text';
+                readinessVerdictEl.style.fontSize = '0.9rem';
+                readinessVerdictEl.style.fontWeight = '600';
+                readinessVerdictEl.style.marginTop = '10px';
+                document.getElementById('readinessScore').after(readinessVerdictEl);
+            }
+            readinessVerdictEl.textContent = readinessData.verdict;
+            readinessVerdictEl.style.color = readinessData.score >= 70 ? '#4CAF50' : readinessData.score >= 50 ? '#FF9800' : '#F44336';
+
+            let relevanceVerdictEl = relevanceCard.querySelector('.verdict-text');
+            if (!relevanceVerdictEl) {
+                relevanceVerdictEl = document.createElement('p');
+                relevanceVerdictEl.className = 'verdict-text';
+                relevanceVerdictEl.style.fontSize = '0.9rem';
+                relevanceVerdictEl.style.fontWeight = '600';
+                relevanceVerdictEl.style.marginTop = '10px';
+                document.getElementById('relevanceScore').after(relevanceVerdictEl);
+            }
+            relevanceVerdictEl.textContent = relevanceData.verdict;
+            relevanceVerdictEl.style.color = relevanceData.score >= 70 ? '#4CAF50' : relevanceData.score >= 50 ? '#FF9800' : '#F44336';
+
+            readinessCard.style.cursor = 'pointer';
+            relevanceCard.style.cursor = 'pointer';
+            readinessCard.title = 'Click to see detailed breakdown';
+            relevanceCard.title = 'Click to see detailed breakdown';
+
+            readinessCard.onclick = () => {
+                const breakdown = readinessData.reasons.join('\n\n');
+                alert(`📊 Career Readiness Breakdown:\n\n${breakdown}\n\nVerdict: ${readinessData.verdict}`);
+            };
+
+            relevanceCard.onclick = () => {
+                const breakdown = relevanceData.reasons.join('\n\n');
+                alert(`📊 Experience Relevance Breakdown:\n\n${breakdown}\n\nVerdict: ${relevanceData.verdict}`);
+            };
+
+            displayJobComparison(result);
+            document.getElementById('metricsGrid').style.display = 'grid';
+
+        } catch (error) {
+            console.error('Error analyzing job:', error);
+            alert('Error analyzing job match. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Analyze Match';
         }
-        readinessVerdictEl.textContent = readinessData.verdict;
-        readinessVerdictEl.style.color = readinessData.score >= 70 ? '#4CAF50' : readinessData.score >= 50 ? '#FF9800' : '#F44336';
+    });
 
-        let relevanceVerdictEl = relevanceCard.querySelector('.verdict-text');
-        if (!relevanceVerdictEl) {
-            relevanceVerdictEl = document.createElement('p');
-            relevanceVerdictEl.className = 'verdict-text';
-            relevanceVerdictEl.style.fontSize = '0.9rem';
-            relevanceVerdictEl.style.fontWeight = '600';
-            relevanceVerdictEl.style.marginTop = '10px';
-            document.getElementById('relevanceScore').after(relevanceVerdictEl);
-        }
-        relevanceVerdictEl.textContent = relevanceData.verdict;
-        relevanceVerdictEl.style.color = relevanceData.score >= 70 ? '#4CAF50' : relevanceData.score >= 50 ? '#FF9800' : '#F44336';
-
-        // Make cards clickable to show detailed reasons
-        readinessCard.style.cursor = 'pointer';
-        relevanceCard.style.cursor = 'pointer';
-        readinessCard.title = 'Click to see detailed breakdown';
-        relevanceCard.title = 'Click to see detailed breakdown';
-
-        readinessCard.onclick = () => {
-            const breakdown = readinessData.reasons.join('\n\n');
-            alert(`📊 Career Readiness Breakdown:\n\n${breakdown}\n\n${readinessData.verdict}`);
-        };
-
-        relevanceCard.onclick = () => {
-            const breakdown = relevanceData.reasons.join('\n\n');
-            alert(`📊 Experience Relevance Breakdown:\n\n${breakdown}\n\n${relevanceData.verdict}`);
-        };
-
-        // Display job comparison chart
-        displayJobComparison(result);
-
-        // Show the metrics grid
-        document.getElementById('metricsGrid').style.display = 'grid';
-
-    } catch (error) {
-        console.error('Error analyzing job:', error);
-        alert('Error analyzing job match');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Analyze Match';
-    }
-});
-
-    // ===== DISPLAY JOB COMPARISON CHART =====
     function displayJobComparison(result) {
         const placeholder = document.getElementById('jobComparisonPlaceholder');
         const canvas = document.getElementById('jobComparisonChart');
@@ -677,7 +681,7 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         ];
 
         if (labels.length === 0) {
-            text.textContent = 'No matching skills found for this job. Try a different job title.';
+            text.textContent = 'No matching skills found. Try a different job title.';
             placeholder.style.display = 'block';
             canvas.style.display = 'none';
             return;
@@ -705,10 +709,7 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
                 responsive: true,
                 maintainAspectRatio: true,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10
-                    }
+                    y: { beginAtZero: true, max: 10 }
                 },
                 plugins: {
                     legend: { display: false }
@@ -717,38 +718,97 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         });
     }
 
-    // ===== SHOW SKILL DETAIL MODAL =====
+    // Show skill detail modal with Bloom's explanation and improvement tips
     function showSkillDetail(skillIndex) {
         const skill = globalSkillsData[skillIndex];
         if (!skill) return;
 
         document.getElementById('skillModalTitle').textContent = skill.name;
         document.getElementById('skillBloomLevel').textContent = skill.bloomLevel || 'N/A';
-        document.getElementById('skillConfidence').textContent = skill.confidence;
-        document.getElementById('skillCategory').textContent = skill.category;
-        document.getElementById('skillSource').textContent = skill.skillSource || 'Unknown';
-        document.getElementById('skillBasis').textContent = skill.basis || 'No basis provided';
+        
+        let proficiencyText = 'Beginner';
+        if (skill.score >= 9) proficiencyText = 'Expert';
+        else if (skill.score >= 7) proficiencyText = 'Advanced';
+        else if (skill.score >= 5) proficiencyText = 'Intermediate';
+        
+        document.getElementById('skillProficiency').textContent = proficiencyText;
+        document.getElementById('skillCategory').textContent = skill.category || 'General';
+        document.getElementById('skillConfidence').textContent = skill.confidence || 'Medium';
+        document.getElementById('skillEvidence').textContent = 
+            (skill.evidencePieces && skill.evidencePieces.length > 0) 
+                ? skill.evidencePieces.join('. ') 
+                : 'No specific evidence found in your CV.';
+        document.getElementById('skillBasis').textContent = skill.basis || 'Assessed based on CV content and experience level';
 
         const scoreFill = document.getElementById('skillScoreFill');
         scoreFill.textContent = `${skill.score}/10`;
         scoreFill.style.width = `${(skill.score / 10) * 100}%`;
 
-        const evidenceList = document.getElementById('evidenceList');
-        evidenceList.innerHTML = '';
+        // Bloom's Taxonomy Explanation
+        const bloomExplanations = {
+            'Remember': '📚 <strong>Remember (Recall):</strong> You can recall basic facts and concepts about this skill. This is foundational knowledge - you know <em>what</em> it is but may not have practical experience yet. <br><br><strong>Example:</strong> You can name JavaScript frameworks or define what an API is.',
+            'Understand': '💡 <strong>Understand (Comprehension):</strong> You grasp the underlying principles and can explain concepts. You understand <em>how</em> this skill works in theory. <br><br><strong>Example:</strong> You can explain how React components work or describe REST principles.',
+            'Apply': '🔧 <strong>Apply (Application):</strong> You can use this skill in real-world scenarios. You\'ve moved beyond theory and can <em>implement</em> solutions using this skill. <br><br><strong>Example:</strong> You can build a working React app or design a RESTful API.',
+            'Analyze': '🔍 <strong>Analyze (Analysis):</strong> You can break down complex problems and identify patterns. You understand the <em>why</em> behind the skill and can troubleshoot issues. <br><br><strong>Example:</strong> You can debug complex React performance issues or optimize API architecture.',
+            'Evaluate': '⚖️ <strong>Evaluate (Assessment):</strong> You can make judgments about quality and effectiveness. You can <em>assess</em> different approaches and choose the best solution. <br><br><strong>Example:</strong> You can compare React vs Vue for a project or evaluate API security approaches.',
+            'Create': '🚀 <strong>Create (Innovation):</strong> You can design new solutions and innovate. You have <em>mastery</em> - you don\'t just use the skill, you push its boundaries and teach others. <br><br><strong>Example:</strong> You can create React libraries or design novel API patterns that others adopt.'
+        };
 
-        if (skill.evidencePieces && skill.evidencePieces.length > 0) {
-            document.getElementById('evidenceSection').style.display = 'block';
-            skill.evidencePieces.forEach(evidence => {
-                const li = document.createElement('li');
-                li.textContent = evidence;
-                evidenceList.appendChild(li);
-            });
-        } else {
-            document.getElementById('evidenceSection').style.display = 'none';
-        }
+        document.getElementById('bloomExplanation').innerHTML = 
+            bloomExplanations[skill.bloomLevel] || 'Bloom\'s Taxonomy level helps measure the depth of your knowledge and practical application of this skill.';
+
+        // Generate improvement recommendations
+        const improvementList = document.getElementById('improvementList');
+        improvementList.innerHTML = '';
+        
+        const improvements = generateImprovementTips(skill.name, skill.score, skill.bloomLevel, skill.category);
+        improvements.forEach(tip => {
+            const li = document.createElement('li');
+            li.textContent = tip;
+            improvementList.appendChild(li);
+        });
 
         document.getElementById('modalBackdrop').classList.add('show');
         document.getElementById('skillModal').classList.add('show');
+    }
+
+    // Generate personalized improvement tips
+    function generateImprovementTips(skillName, score, bloomLevel, category) {
+        const tips = [];
+        
+        if (score < 5) {
+            tips.push(`📖 Start with fundamentals: Take an introductory course on ${skillName} (try Coursera, Udemy, or YouTube tutorials)`);
+            tips.push(`💻 Practice daily: Dedicate 30 minutes each day to hands-on exercises`);
+            tips.push(`👥 Find a mentor or study group to guide your learning journey`);
+        } else if (score < 7) {
+            tips.push(`🎯 Work on real projects: Build 2-3 portfolio projects showcasing ${skillName}`);
+            tips.push(`📚 Read advanced documentation and best practices for ${skillName}`);
+            tips.push(`🤝 Contribute to open-source projects or collaborate with others`);
+        } else if (score < 9) {
+            tips.push(`🏆 Tackle complex challenges: Solve advanced problems on platforms like LeetCode or HackerRank`);
+            tips.push(`📝 Write technical articles or create tutorials to solidify your expertise`);
+            tips.push(`🎤 Present at meetups or conferences to share your knowledge`);
+        } else {
+            tips.push(`🌟 You're an expert! Consider mentoring others or teaching ${skillName}`);
+            tips.push(`📖 Publish content: Write a book, create a course, or start a YouTube channel`);
+            tips.push(`🚀 Push boundaries: Research cutting-edge applications or contribute to industry standards`);
+        }
+
+        if (bloomLevel === 'Remember' || bloomLevel === 'Understand') {
+            tips.push(`🔄 Move to application: Build something practical using ${skillName} this week`);
+        } else if (bloomLevel === 'Apply') {
+            tips.push(`🔍 Deepen understanding: Study why things work, not just how - analyze edge cases`);
+        } else if (bloomLevel === 'Analyze' || bloomLevel === 'Evaluate') {
+            tips.push(`💡 Innovate: Try creating something new or improving existing solutions`);
+        }
+
+        if (category === 'technical') {
+            tips.push(`💼 Get certified: Professional certifications can validate your ${skillName} expertise`);
+        } else if (category === 'soft') {
+            tips.push(`🎭 Practice in real scenarios: Seek opportunities to apply ${skillName} in team projects`);
+        }
+
+        return tips.slice(0, 5);
     }
 
     function closeSkillModal() {
@@ -756,7 +816,6 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         document.getElementById('skillModal').classList.remove('show');
     }
 
-    // ===== SHOW SKILLS BY TYPE MODAL =====
     function showSkillsByType() {
         if (!globalResultsData) return;
 
@@ -766,8 +825,6 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         const soft = skills.filter(s => s.category === 'soft');
         const business = skills.filter(s => s.category === 'business');
         const domain = skills.filter(s => s.category === 'domain');
-        const language = skills.filter(s => s.category === 'language');
-        const other = skills.filter(s => s.category === 'other');
 
         let message = `📊 Skills Breakdown:\n\n`;
         
@@ -792,45 +849,26 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         if (domain.length > 0) {
             message += `🔬 Domain Skills (${domain.length}):\n`;
             domain.forEach(s => message += `  • ${s.name} - ${s.score}/10\n`);
-            message += `\n`;
-        }
-
-        if (language.length > 0) {
-            message += `🌐 Language Skills (${language.length}):\n`;
-            language.forEach(s => message += `  • ${s.name} - ${s.score}/10\n`);
-            message += `\n`;
-        }
-
-        if (other.length > 0) {
-            message += `📌 Other Skills (${other.length}):\n`;
-            other.forEach(s => message += `  • ${s.name} - ${s.score}/10\n`);
         }
 
         alert(message);
     }
 
-    // ===== LOAD RESULTS FROM SESSION STORAGE OR DATABASE =====
     async function loadAndDisplayResults() {
         let resultsData = null;
 
         const sessionData = sessionStorage.getItem('cvResults');
         
         if (sessionData) {
-            console.log('Loading from sessionStorage');
             resultsData = JSON.parse(sessionData);
         } else {
-            console.log('SessionStorage empty, loading from database');
             try {
-                const response = await fetch('/api/latest-cv-analysis', {
-                    credentials: 'include'
-                });
+                const response = await fetch('/api/latest-cv-analysis', { credentials: 'include' });
                 const result = await response.json();
                 
                 if (result.success && result.hasAnalysis) {
-                    console.log('Loaded from database successfully');
                     resultsData = result.data;
                 } else {
-                    console.log('No analysis found in database');
                     alert('No CV analysis found. Please upload a CV first.');
                     window.location.href = '/dashboard';
                     return;
@@ -854,20 +892,12 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
     }
 
     function displayResults(resultsData) {
-        console.log('Displaying results:', resultsData);
-
         const analysisDate = resultsData.analyzedAt 
             ? new Date(resultsData.analyzedAt).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
             })
             : new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+                year: 'numeric', month: 'long', day: 'numeric' 
             });
         
         document.getElementById('userInfo').textContent = `Analysis completed on ${analysisDate}`;
@@ -878,7 +908,6 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         const skillNames = skills.map(s => s.name);
         const skillScores = skills.map(s => s.score);
 
-        // ===== SKILLS BAR CHART WITH CLICK HANDLER =====
         const skillsCtx = document.getElementById('skillsChart').getContext('2d');
         
         if (skillsChartInstance) {
@@ -907,46 +936,14 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10,
-                        ticks: {
-                            stepSize: 1,
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        },
-                        grid: {
-                            color: '#e0e0e0'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: {
-                                size: 11,
-                                weight: 'bold'
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } }
                 },
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             afterLabel: function(context) {
-                                const skill = skills[context.dataIndex];
-                                return [
-                                    `Confidence: ${skill.confidence}`,
-                                    `Bloom's Level: ${skill.bloomLevel || 'N/A'}`,
-                                    `Category: ${skill.category}`,
-                                    `Click for details`
-                                ];
+                                return 'Click for detailed breakdown';
                             }
                         }
                     }
@@ -954,51 +951,21 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
             }
         });
 
-        // ===== CATEGORY PIE CHART =====
-        const skillsByType = resultsData.skillsByType || {
-            technical: 0,
-            soft: 0,
-            business: 0,
-            domain: 0,
-            language: 0,
-            other: 0
-        };
+        const skillsByType = resultsData.skillsByType || { technical: 0, soft: 0, business: 0, domain: 0 };
 
         const typeLabels = [];
         const typeCounts = [];
         
-        if (skillsByType.technical > 0) {
-            typeLabels.push('Technical Skills');
-            typeCounts.push(skillsByType.technical);
-        }
-        if (skillsByType.soft > 0) {
-            typeLabels.push('Soft Skills');
-            typeCounts.push(skillsByType.soft);
-        }
-        if (skillsByType.business > 0) {
-            typeLabels.push('Business Skills');
-            typeCounts.push(skillsByType.business);
-        }
-        if (skillsByType.domain > 0) {
-            typeLabels.push('Domain Skills');
-            typeCounts.push(skillsByType.domain);
-        }
-        if (skillsByType.language > 0) {
-            typeLabels.push('Language Skills');
-            typeCounts.push(skillsByType.language);
-        }
-        if (skillsByType.other > 0) {
-            typeLabels.push('Other Skills');
-            typeCounts.push(skillsByType.other);
-        }
+        if (skillsByType.technical > 0) { typeLabels.push('Technical Skills'); typeCounts.push(skillsByType.technical); }
+        if (skillsByType.soft > 0) { typeLabels.push('Soft Skills'); typeCounts.push(skillsByType.soft); }
+        if (skillsByType.business > 0) { typeLabels.push('Business Skills'); typeCounts.push(skillsByType.business); }
+        if (skillsByType.domain > 0) { typeLabels.push('Domain Skills'); typeCounts.push(skillsByType.domain); }
 
         const typeColors = {
             'Technical Skills': 'rgba(107, 163, 213, 0.8)',
             'Soft Skills': 'rgba(76, 175, 80, 0.8)',
             'Business Skills': 'rgba(255, 193, 7, 0.8)',
-            'Domain Skills': 'rgba(156, 39, 176, 0.8)',
-            'Language Skills': 'rgba(33, 150, 243, 0.8)',
-            'Other Skills': 'rgba(158, 158, 158, 0.8)'
+            'Domain Skills': 'rgba(156, 39, 176, 0.8)'
         };
 
         const backgroundColors = typeLabels.map(type => typeColors[type]);
@@ -1024,26 +991,10 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const type = context.label;
-                                const count = context.parsed;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((count / total) * 100).toFixed(1);
-                                return `${type}: ${count} skills (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
+                plugins: { legend: { display: false } }
             }
         });
 
-        // ===== CATEGORY LEGEND =====
         const categoryLegend = document.getElementById('categoryLegend');
         categoryLegend.innerHTML = '';
         typeLabels.forEach((type, index) => {
@@ -1063,11 +1014,9 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
             categoryLegend.appendChild(legendItem);
         });
 
-        // Display default top skills if no job analyzed
         displayDefaultTopSkills();
     }
 
-    // ===== DISPLAY DEFAULT TOP SKILLS =====
     function displayDefaultTopSkills() {
         const placeholder = document.getElementById('jobComparisonPlaceholder');
         const canvas = document.getElementById('jobComparisonChart');
@@ -1083,7 +1032,6 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
 
         text.textContent = 'Your Top Skills (by score)';
 
-        // Sort skills by score descending and take top 10
         const topSkills = globalSkillsData.slice().sort((a, b) => b.score - a.score).slice(0, 10);
 
         const labels = topSkills.map(s => s.name);
@@ -1111,20 +1059,12 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
+                scales: { y: { beginAtZero: true, max: 10 } },
+                plugins: { legend: { display: false } }
             }
         });
     }
 
-    // ===== NAVBAR SESSION CHECK =====
     async function updateNavbar() {
         try {
             const res = await fetch('/session-info', { credentials: 'include' });
@@ -1143,7 +1083,6 @@ document.getElementById('analyzeJobBtn').addEventListener('click', async () => {
         }
     }
 
-    // ===== INITIALIZE ON PAGE LOAD =====
     document.addEventListener('DOMContentLoaded', function() {
         updateNavbar();
         loadJobTitles();
