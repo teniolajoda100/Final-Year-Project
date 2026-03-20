@@ -11,389 +11,216 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
     <style>
-        body {
-            background-color: #f4f6f9;
-        }
+        body { background-color: #f4f6f9; }
 
         .analysis-wrapper {
-            max-width: 1400px;
+            max-width: 1300px;
             margin: 100px auto 60px;
             padding: 20px;
         }
 
+        /* ── Candidate header ── */
         .candidate-header {
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px 36px;
+            border-radius: 12px;
+            margin-bottom: 26px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             border: 2px solid #333;
         }
 
-        .candidate-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .cand-avatar {
+            width: 72px; height: 72px; flex-shrink: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6BA3D5, #3b82f6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; font-weight: 800; color: white;
+            letter-spacing: -1px;
         }
 
-        .candidate-header .position {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 15px;
-        }
+        .cand-meta { flex: 1; }
+        .cand-meta h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 4px; color: #1e293b; }
+        .cand-meta .position { font-size: 1rem; color: #666; margin-bottom: 10px; }
 
         .status-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 14px; border-radius: 20px;
+            font-weight: 700; font-size: 0.82rem; text-transform: uppercase;
+        }
+        .status-badge.pending      { background: #fef3c7; color: #92400e; }
+        .status-badge.shortlisted  { background: #dbeafe; color: #1e3a8a; }
+        .status-badge.interviewing { background: #fef9c3; color: #713f12; }
+        .status-badge.hired        { background: #d1fae5; color: #065f46; }
+        .status-badge.rejected     { background: #fee2e2; color: #991b1b; }
+
+        .cand-scores {
+            display: flex; gap: 14px; flex-shrink: 0; flex-wrap: wrap;
+        }
+        .score-tile {
+            text-align: center; padding: 12px 18px;
+            background: #f8f9fa; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; min-width: 90px;
+        }
+        .score-tile .st-val {
+            font-size: 1.5rem; font-weight: 800; color: #3b82f6; line-height: 1;
+        }
+        .score-tile .st-lbl {
+            font-size: 0.7rem; color: #9ca3af; font-weight: 600;
+            text-transform: uppercase; margin-top: 3px;
         }
 
-        .status-badge.pending { background: #FFF3CD; color: #856404; }
-        .status-badge.shortlisted { background: #D1ECF1; color: #0C5460; }
-        .status-badge.interviewing { background: #D4EDDA; color: #155724; }
-        .status-badge.hired { background: #D4EDDA; color: #155724; }
-        .status-badge.rejected { background: #F8D7DA; color: #721C24; }
-
+        /* ── Charts grid ── */
         .charts-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 22px;
+            margin-bottom: 22px;
         }
 
         .chart-card {
             background: white;
             border: 2px solid #333;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.07);
         }
 
         .chart-card h2 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #2C3E50;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            font-size: 0.95rem; font-weight: 700; color: #2C3E50;
+            margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;
         }
+        .chart-card p { color: #888; font-size: 0.84rem; margin-bottom: 14px; }
 
-        .chart-card p {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .metric-banner {
-            background: linear-gradient(135deg, #5f8fd6 0%, #3f6fb0 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .metric-banner h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .metric-banner .score {
-            font-size: 3rem;
-            font-weight: 700;
-        }
-
+        /* ── Feedback / training grid ── */
         .feedback-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 22px;
+            margin-bottom: 22px;
         }
 
         .feedback-card {
             background: white;
             border: 2px solid #333;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.07);
         }
 
         .feedback-card h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            color: #2C3E50;
+            font-size: 0.95rem; font-weight: 700;
+            margin-bottom: 14px; text-transform: uppercase;
+            color: #2C3E50; display: flex; align-items: center; gap: 7px;
         }
 
-        .feedback-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        .feedback-card ul { list-style: none; padding: 0; margin: 0; }
         .feedback-card li {
-            padding: 10px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            font-size: 0.95rem;
+            padding: 10px 12px; margin-bottom: 7px;
+            background: #f8f9fa; border-radius: 7px; font-size: 0.9rem;
         }
-
-        .strengths-card li { border-left: 4px solid #4CAF50; }
-        .gaps-card li { border-left: 4px solid #F44336; }
+        .strengths-card li { border-left: 4px solid #10b981; }
+        .gaps-card      li { border-left: 4px solid #ef4444; }
 
         .training-section {
-            background: white;
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: white; border: 2px solid #333;
+            border-radius: 12px; padding: 22px;
+            margin-bottom: 22px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);
         }
-
         .training-section h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            color: #2C3E50;
+            font-size: 0.95rem; font-weight: 700; margin-bottom: 14px;
+            text-transform: uppercase; color: #2C3E50;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .training-section ul { list-style: none; padding: 0; margin: 0; }
+        .training-section li {
+            padding: 10px 12px; margin-bottom: 7px;
+            background: #f0f7ff; border-radius: 7px; font-size: 0.9rem;
+            border-left: 4px solid #3b82f6;
         }
 
+        /* ── Action buttons ── */
         .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
+            display: flex; gap: 12px; margin-top: 28px;
+            justify-content: center; flex-wrap: wrap;
         }
 
         .action-btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 13px 26px; border: none; border-radius: 9px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer;
+            transition: all 0.25s; display: inline-flex;
+            align-items: center; gap: 8px;
         }
+        .action-btn:hover { transform: translateY(-2px); }
+        .btn-shortlist { background: linear-gradient(135deg,#10b981,#34d399); color:white; }
+        .btn-shortlist:hover { box-shadow: 0 5px 14px rgba(16,185,129,0.35); }
+        .btn-interview { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:white; }
+        .btn-interview:hover { box-shadow: 0 5px 14px rgba(245,158,11,0.35); }
+        .btn-hire   { background: linear-gradient(135deg,#3b82f6,#60a5fa); color:white; }
+        .btn-hire:hover { box-shadow: 0 5px 14px rgba(59,130,246,0.35); }
+        .btn-reject { background: linear-gradient(135deg,#ef4444,#f87171); color:white; }
+        .btn-reject:hover { box-shadow: 0 5px 14px rgba(239,68,68,0.35); }
+        .btn-export { background: linear-gradient(135deg,#1e3a8a,#3b82f6); color:white; }
+        .btn-export:hover { box-shadow: 0 5px 14px rgba(30,58,138,0.35); }
+        .btn-back   { background: #f8f9fa; color: #333; border: 2px solid #d1d5db; }
+        .btn-back:hover { background: #e5e7eb; transform: none; }
 
-        .btn-shortlist {
-            background: linear-gradient(135deg, #4CAF50, #66BB6A);
-            color: white;
-        }
-
-        .btn-shortlist:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76,175,80,0.3);
-        }
-
-        .btn-reject {
-            background: linear-gradient(135deg, #F44336, #E57373);
-            color: white;
-        }
-
-        .btn-reject:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(244,67,54,0.3);
-        }
-
-        .btn-export {
-            background: linear-gradient(135deg, #5f8fd6, #3f6fb0);
-            color: white;
-        }
-
-        .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(95,143,214,0.3);
-        }
-
-        .btn-back {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #333;
-        }
-
-        .btn-back:hover {
-            background: #e0e0e0;
-        }
-
-        /* Skill Detail Modal */
+        /* ── Skill modal ── */
         .modal-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 9998;
-            animation: fadeIn 0.3s;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 9998; animation: fadeIn 0.25s;
         }
+        .modal-backdrop.show { display: block; }
 
-        .modal-backdrop.show {
-            display: block;
-        }
-
-        .skill-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            z-index: 9999;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        .cv-modal {
+            display: none; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            background: white; border-radius: 14px; padding: 28px;
+            max-width: 600px; width: 92%; max-height: 84vh; overflow-y: auto;
+            z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.22);
             animation: slideUp 0.3s;
         }
+        .cv-modal.show { display: block; }
 
-        .skill-modal.show {
-            display: block;
+        .modal-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e8e8e8;
         }
+        .modal-top h3 { margin:0; font-size:1.35rem; font-weight:800; color:#2C3E50; }
+        .close-btn { background:none; border:none; font-size:1.8rem; cursor:pointer; color:#aaa; padding:0; transition:color .2s; }
+        .close-btn:hover { color:#333; }
 
-        .skill-modal .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
-        }
+        .modal-score-wrap { margin: 4px 0 16px; }
+        .modal-score-label { display:flex; justify-content:space-between; margin-bottom:6px; font-weight:600; font-size:.9rem; }
+        .modal-score-track { height:28px; background:#e5e7eb; border-radius:14px; overflow:hidden; }
+        .modal-score-fill  { height:100%; background:linear-gradient(90deg,#6BA3D5,#89B7DC); display:flex; align-items:center; justify-content:flex-end; padding-right:12px; color:white; font-weight:700; font-size:.88rem; transition:width .5s; }
 
-        .skill-modal .modal-header h3 {
-            margin: 0;
-            font-size: 1.8rem;
-            color: #2C3E50;
-        }
+        .modal-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+        .modal-meta-item { background:#f8f9fa; padding:12px; border-radius:8px; }
+        .modal-meta-item label { font-size:.72rem; color:#888; text-transform:uppercase; font-weight:700; display:block; margin-bottom:4px; }
+        .modal-meta-item .val { font-size:.95rem; font-weight:700; color:#2C3E50; }
 
-        .skill-modal .close-btn {
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #999;
-            line-height: 1;
-        }
+        .mbox { border-radius:8px; padding:13px 14px; margin-bottom:11px; border-left:4px solid transparent; }
+        .mbox h4 { font-size:.9rem; font-weight:700; margin-bottom:6px; }
+        .mbox p, .mbox ul { font-size:.87rem; margin:0; line-height:1.6; }
+        .mbox ul { padding-left:18px; }
+        .mbox-blue  { background:linear-gradient(135deg,#eff6ff,#dbeafe); border-color:#3b82f6; }
+        .mbox-blue h4 { color:#1e3a8a; }
+        .mbox-green { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-color:#10b981; }
+        .mbox-green h4 { color:#065f46; }
+        .mbox-slate { background:#f8f9fa; border-color:#6BA3D5; }
+        .mbox-slate h4 { color:#2C3E50; }
 
-        .skill-modal .close-btn:hover {
-            color: #333;
-        }
+        @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+        @keyframes slideUp { from{opacity:0;transform:translate(-50%,-40%)} to{opacity:1;transform:translate(-50%,-50%)} }
 
-        .skill-detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .skill-detail-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-        }
-
-        .skill-detail-item label {
-            font-size: 0.85rem;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .skill-detail-item .value {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #2C3E50;
-        }
-
-        .skill-score-visual {
-            margin: 20px 0;
-        }
-
-        .score-bar {
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .score-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #5f8fd6, #3f6fb0);
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: white;
-            font-weight: 600;
-        }
-
-        .evidence-section {
-            background: #f0f7ff;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #5f8fd6;
-        }
-
-        .evidence-section h4 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #2C3E50;
-        }
-
-        .evidence-section p {
-            margin: 0;
-            color: #555;
-        }
-
-        .evidence-section ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .evidence-section li {
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -40%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .charts-grid,
-            .feedback-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .skill-detail-grid {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 900px) {
+            .charts-grid, .feedback-grid { grid-template-columns: 1fr; }
+            .candidate-header { flex-wrap: wrap; }
+            .cand-scores { width: 100%; }
+            .modal-meta-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -403,16 +230,10 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="/">
-            <img src="assets/logo.png" alt="CVision Logo">
-        </a>
-
+        <a class="navbar-brand" href="/"><img src="assets/logo.png" alt="CVision Logo"></a>
         <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
-            <li class="nav-item">
-                <a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a>
-            </li>
+            <li class="nav-item"><a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a></li>
             <li class="nav-item ms-3">
                 <a href="/profile" class="profile-btn">
                     <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
@@ -422,370 +243,481 @@
     </div>
 </nav>
 
-<!-- ANALYSIS CONTENT -->
 <div class="analysis-wrapper">
-    
+
     <!-- Candidate Header -->
     <div class="candidate-header">
-        <h1 id="candidateName">Loading...</h1>
-        <div class="position" id="positionApplied">Position</div>
-        <span class="status-badge" id="statusBadge">pending</span>
+        <div class="cand-avatar" id="candAvatar">??</div>
+        <div class="cand-meta">
+            <h1 id="candidateName">Loading…</h1>
+            <div class="position" id="positionApplied">Position</div>
+            <span class="status-badge pending" id="statusBadge">pending</span>
+        </div>
+        <div class="cand-scores">
+            <div class="score-tile">
+                <div class="st-val" id="matchScoreTile">--</div>
+                <div class="st-lbl">Match %</div>
+            </div>
+            <div class="score-tile">
+                <div class="st-val" id="expScoreTile">--</div>
+                <div class="st-lbl">Exp %</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Charts Grid -->
+    <!-- Charts row -->
     <div class="charts-grid">
-        <!-- Skills Level Results -->
         <div class="chart-card">
             <h2>Skills Level Results</h2>
-            <p>Bar charts showing skill levels using Bloom's Taxonomy. <strong>Click bars for details.</strong></p>
+            <p>Assessed using Bloom's Taxonomy. <strong>Click any bar for details.</strong></p>
             <canvas id="skillsChart"></canvas>
         </div>
-
-        <!-- Required vs Actual Skills -->
         <div class="chart-card">
-            <h2>Required vs Actual Skills</h2>
-            <p>Radar chart comparison</p>
+            <h2>Required vs. Actual Skills</h2>
+            <p>Radar comparison against role requirements.</p>
             <canvas id="radarChart"></canvas>
         </div>
     </div>
 
-    <!-- Experience Relevance Score -->
-    <div class="metric-banner">
-        <h3>Experience Relevance Score</h3>
-        <div class="score" id="relevanceScore">--</div>
-    </div>
-
-    <!-- Strengths & Skill Gaps -->
+    <!-- Strengths + Gaps -->
     <div class="feedback-grid">
         <div class="feedback-card strengths-card">
-            <h3><i class="bi bi-check-circle"></i> Strengths</h3>
+            <h3><i class="bi bi-check-circle-fill" style="color:#10b981;"></i> Strengths</h3>
             <ul id="strengthsList"></ul>
         </div>
-
         <div class="feedback-card gaps-card">
-            <h3><i class="bi bi-exclamation-triangle"></i> Skill Gaps</h3>
+            <h3><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i> Skill Gaps</h3>
             <ul id="gapsList"></ul>
         </div>
     </div>
 
-    <!-- Recommended Training -->
+    <!-- Training -->
     <div class="training-section">
-        <h3><i class="bi bi-book"></i> Recommended Training if Hired</h3>
+        <h3><i class="bi bi-book" style="color:#3b82f6;"></i> Recommended Training if Hired</h3>
         <ul id="trainingList"></ul>
     </div>
 
     <!-- Action Buttons -->
-    <div class="action-buttons">
+    <div class="action-buttons" id="actionButtons">
         <button class="action-btn btn-back" onclick="window.location.href='/dashboard'">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <i class="bi bi-arrow-left"></i> Dashboard
         </button>
-        <button class="action-btn btn-shortlist" id="shortlistBtn">
-            <i class="bi bi-star"></i> Shortlist Candidate
-        </button>
-        <button class="action-btn btn-reject" id="rejectBtn">
-            <i class="bi bi-x-circle"></i> Reject
-        </button>
+        <!-- Status-contextual buttons rendered by JS -->
         <button class="action-btn btn-export" id="exportBtn">
-            <i class="bi bi-file-pdf"></i> Export Report (PDF)
+            <i class="bi bi-file-earmark-pdf"></i> Export Report as PDF
         </button>
     </div>
 
 </div>
 
-<!-- Skill Detail Modal -->
-<div class="modal-backdrop" id="modalBackdrop" onclick="closeSkillModal()"></div>
-<div class="skill-modal" id="skillModal">
-    <div class="modal-header">
-        <h3 id="skillModalTitle">Skill Name</h3>
-        <button class="close-btn" onclick="closeSkillModal()">&times;</button>
-    </div>
-    
-    <div class="skill-score-visual">
-        <div class="score-bar">
-            <div class="score-fill" id="skillScoreFill">0/10</div>
-        </div>
-    </div>
+<!-- Skill modal backdrop -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()"></div>
 
-    <div class="skill-detail-grid">
-        <div class="skill-detail-item">
-            <label>Bloom's Level</label>
-            <div class="value" id="skillBloomLevel">--</div>
-        </div>
-        <div class="skill-detail-item">
-            <label>Proficiency Level</label>
-            <div class="value" id="skillProficiency">--</div>
-        </div>
-        <div class="skill-detail-item">
-            <label>Has Skill?</label>
-            <div class="value" id="skillHasSkill">--</div>
-        </div>
-        <div class="skill-detail-item">
-            <label>Assessment Source</label>
-            <div class="value" id="skillSource">--</div>
-        </div>
+<!-- Skill detail modal -->
+<div class="cv-modal" id="skillModal">
+    <div class="modal-top">
+        <h3 id="skillModalTitle">Skill</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
     </div>
-
-    <div class="evidence-section" style="margin-top: 20px;">
-        <h4><i class="bi bi-clipboard-check"></i> Evidence from CV</h4>
-        <p id="skillEvidence" style="font-style: italic;"></p>
-    </div>
-
-    <div class="evidence-section" style="margin-top: 15px;">
-        <h4><i class="bi bi-info-circle"></i> Assessment Basis</h4>
-        <p id="skillBasis"></p>
-    </div>
+    <div id="skillModalBody"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let skillsChartInstance = null;
-    let radarChartInstance = null;
-    let candidateData = null;
-    let globalSkillsData = [];
+'use strict';
 
-    // Get candidate ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const candidateId = urlParams.get('id');
+let skillsChartInstance = null;
+let radarChartInstance  = null;
+let candidateData       = null;
+let globalSkillsData    = [];
 
-    if (!candidateId) {
-        alert('No candidate ID provided');
+const urlParams   = new URLSearchParams(window.location.search);
+const candidateId = urlParams.get('id');
+if (!candidateId) { window.location.href = '/dashboard'; }
+
+// ── Load candidate ────────────────────────────────────────────
+async function loadCandidateAnalysis() {
+    try {
+        const res    = await fetch(`/api/recruiter/candidates/${candidateId}`, { credentials: 'include' });
+        const result = await res.json();
+        if (!result.success) { window.location.href = '/dashboard'; return; }
+        candidateData = result.candidate;
+        displayAnalysis(candidateData);
+    } catch (e) {
+        console.error(e);
         window.location.href = '/dashboard';
     }
+}
 
-    // Load candidate data
-    async function loadCandidateAnalysis() {
-        try {
-            const response = await fetch(`/api/recruiter/candidates/${candidateId}`, {
-                credentials: 'include'
-            });
-            const result = await response.json();
+// ── Display ───────────────────────────────────────────────────
+function displayAnalysis(c) {
+    // Header
+    const name = c.name || 'Unknown Candidate';
+    document.getElementById('candidateName').textContent  = name;
+    document.getElementById('positionApplied').textContent= c.position_applied || '';
 
-            if (!result.success) {
-                alert('Failed to load candidate: ' + result.message);
-                window.location.href = '/dashboard';
-                return;
-            }
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('candAvatar').textContent = initials;
 
-            candidateData = result.candidate;
-            displayAnalysis(candidateData);
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = c.status || 'pending';
+    badge.className   = `status-badge ${c.status || 'pending'}`;
 
-        } catch (error) {
-            console.error('Error loading candidate:', error);
-            alert('Error loading candidate analysis');
-        }
-    }
+    const matchPct = c.match_percentage || 0;
+    const expPct   = c.experience_relevance_score || 0;
+    document.getElementById('matchScoreTile').textContent = matchPct + '%';
+    document.getElementById('expScoreTile').textContent   = expPct  + '%';
+    document.getElementById('matchScoreTile').style.color = matchPct >= 70 ? '#10b981' : matchPct >= 50 ? '#f59e0b' : '#ef4444';
+    document.getElementById('expScoreTile').style.color   = expPct  >= 70 ? '#10b981' : expPct  >= 50 ? '#f59e0b' : '#ef4444';
 
-    function displayAnalysis(candidate) {
-        // Header
-        document.getElementById('candidateName').textContent = candidate.name || 'Unknown Candidate';
-        document.getElementById('positionApplied').textContent = candidate.position_applied || 'Position';
-        
-        const statusBadge = document.getElementById('statusBadge');
-        statusBadge.textContent = candidate.status || 'pending';
-        statusBadge.className = `status-badge ${candidate.status || 'pending'}`;
-
-        // Parse skills (JSONB from database)
-        const skills = candidate.skills || [];
-        globalSkillsData = skills;
-        const jobComparison = candidate.job_comparison || {};
-
-        // Skills Bar Chart with Click Handler
-        if (skills.length > 0) {
-            const skillNames = skills.slice(0, 10).map(s => s.skill || s.name);
-            const skillScores = skills.slice(0, 10).map(s => s.score || 5);
-
-            const ctx = document.getElementById('skillsChart').getContext('2d');
-            skillsChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: skillNames,
-                    datasets: [{
-                        label: 'Proficiency (1-10)',
-                        data: skillScores,
-                        backgroundColor: 'rgba(95, 143, 214, 0.8)',
-                        borderColor: 'rgba(95, 143, 214, 1)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    onClick: (event, elements) => {
-                        if (elements.length > 0) {
-                            const index = elements[0].index;
-                            showSkillDetail(index);
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: 10,
-                            ticks: { stepSize: 1 }
-                        }
-                    },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    return 'Click for detailed breakdown';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Radar Chart - Required vs Actual
-        const requiredSkills = jobComparison.requiredSkills || [];
-        const matchedSkills = jobComparison.matchedRequired || [];
-        const radarLabels = requiredSkills.slice(0, 6);
-        
-        const userScores = radarLabels.map(reqSkill => {
-            const matched = skills.find(s => 
-                (s.skill || s.name).toLowerCase() === reqSkill.toLowerCase()
-            );
-            return matched ? matched.score : 0;
-        });
-
-        const requiredScores = radarLabels.map(() => 7); // Assume 7/10 required
-
-        const radarCtx = document.getElementById('radarChart').getContext('2d');
-        radarChartInstance = new Chart(radarCtx, {
-            type: 'radar',
-            data: {
-                labels: radarLabels,
-                datasets: [
-                    {
-                        label: 'Required',
-                        data: requiredScores,
-                        borderColor: 'rgba(95, 143, 214, 1)',
-                        backgroundColor: 'rgba(95, 143, 214, 0.2)',
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Actual',
-                        data: userScores,
-                        borderColor: 'rgba(76, 175, 80, 1)',
-                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                        borderWidth: 2
-                    }
-                ]
-            },
+    // Skills chart
+    const skills = c.skills || [];
+    globalSkillsData = skills;
+    if (skills.length) {
+        const top   = skills.slice(0,12);
+        const cols  = top.map(s => { const sc=s.score||0; return sc>=8?'rgba(16,185,129,.85)':sc>=7?'rgba(107,163,213,.85)':sc>=5?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)'; });
+        if (skillsChartInstance) skillsChartInstance.destroy();
+        skillsChartInstance = new Chart(document.getElementById('skillsChart').getContext('2d'), {
+            type: 'bar',
+            data: { labels: top.map(s=>s.skill||s.name), datasets:[{
+                label:'Score', data:top.map(s=>s.score||0),
+                backgroundColor:cols, borderColor:cols.map(c=>c.replace('.85','1')), borderWidth:2, borderRadius:5
+            }]},
             options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    r: { beginAtZero: true, max: 10 }
-                }
+                responsive:true, maintainAspectRatio:true,
+                onClick:(e,els)=>{ if(els.length) showSkillModal(els[0].index); },
+                scales:{ y:{beginAtZero:true,max:10,ticks:{stepSize:1}}, x:{grid:{display:false}} },
+                plugins:{ legend:{display:false}, tooltip:{callbacks:{afterLabel:()=>'Click for details'}} }
             }
         });
-
-        // Experience Relevance Score
-        document.getElementById('relevanceScore').textContent = 
-            `${candidate.experience_relevance_score || 0}%`;
-
-        // Strengths
-        const strengths = candidate.strengths || [];
-        const strengthsList = document.getElementById('strengthsList');
-        strengthsList.innerHTML = strengths.length > 0
-            ? strengths.map(s => `<li>${s}</li>`).join('')
-            : '<li>No strengths data available</li>';
-
-        // Skill Gaps
-        const gaps = candidate.skill_gaps || [];
-        const gapsList = document.getElementById('gapsList');
-        gapsList.innerHTML = gaps.length > 0
-            ? gaps.map(g => `<li>${g}</li>`).join('')
-            : '<li>No skill gaps identified</li>';
-
-        // Recommended Training
-        const training = candidate.recommended_training || [];
-        const trainingList = document.getElementById('trainingList');
-        trainingList.innerHTML = training.length > 0
-            ? training.map(t => `<li>${t}</li>`).join('')
-            : '<li>No training recommendations</li>';
     }
 
-    // Show Skill Detail Modal
-    function showSkillDetail(skillIndex) {
-        const skill = globalSkillsData[skillIndex];
-        if (!skill) return;
-
-        document.getElementById('skillModalTitle').textContent = skill.skill || skill.name;
-        document.getElementById('skillBloomLevel').textContent = skill.bloomLevel || 'N/A';
-        document.getElementById('skillProficiency').textContent = skill.proficiencyLevel || 'Intermediate';
-        document.getElementById('skillHasSkill').textContent = skill.hasSkill ? 'Yes ✓' : 'No ✗';
-        document.getElementById('skillSource').textContent = 'AI Assessment';
-        document.getElementById('skillEvidence').textContent = skill.evidence || 'No specific evidence provided';
-        document.getElementById('skillBasis').textContent = skill.basis || 'Assessed based on CV content and experience level';
-
-        const scoreFill = document.getElementById('skillScoreFill');
-        scoreFill.textContent = `${skill.score}/10`;
-        scoreFill.style.width = `${(skill.score / 10) * 100}%`;
-
-        document.getElementById('modalBackdrop').classList.add('show');
-        document.getElementById('skillModal').classList.add('show');
+    // Radar chart
+    const jc = c.job_comparison || {};
+    const reqSkills  = (jc.requiredSkills || []).slice(0,6);
+    const userScores = reqSkills.map(r => { const m = skills.find(s=>(s.skill||s.name||'').toLowerCase()===r.toLowerCase()); return m?m.score:0; });
+    if (reqSkills.length) {
+        if (radarChartInstance) radarChartInstance.destroy();
+        radarChartInstance = new Chart(document.getElementById('radarChart').getContext('2d'), {
+            type:'radar',
+            data:{ labels:reqSkills, datasets:[
+                {label:'Required', data:reqSkills.map(()=>7), borderColor:'rgba(107,163,213,1)', backgroundColor:'rgba(107,163,213,.2)', borderWidth:2},
+                {label:'Actual',   data:userScores,           borderColor:'rgba(16,185,129,1)',  backgroundColor:'rgba(16,185,129,.2)',   borderWidth:2}
+            ]},
+            options:{ responsive:true, scales:{ r:{beginAtZero:true,max:10} } }
+        });
+    } else {
+        document.getElementById('radarChart').closest('.chart-card').innerHTML =
+            '<h2>Required vs. Actual Skills</h2><p style="color:#9ca3af;padding:20px 0;">No job comparison data — candidate was uploaded without a job description match.</p>';
     }
 
-    function closeSkillModal() {
-        document.getElementById('modalBackdrop').classList.remove('show');
-        document.getElementById('skillModal').classList.remove('show');
+    // Lists
+    const ul = (id, items, fallback) => {
+        document.getElementById(id).innerHTML = items.length
+            ? items.map(i=>`<li>${i}</li>`).join('')
+            : `<li style="color:#9ca3af;">${fallback}</li>`;
+    };
+    ul('strengthsList', c.strengths||[], 'No strengths data available');
+    ul('gapsList', c.skill_gaps||[], 'No skill gaps identified');
+    ul('trainingList', c.recommended_training||[], 'No training recommendations');
+
+    // Contextual action buttons
+    renderActionButtons(c.status);
+}
+
+function renderActionButtons(status) {
+    const wrap = document.getElementById('actionButtons');
+    const exportBtn = '<button class="action-btn btn-export" id="exportBtn"><i class="bi bi-file-earmark-pdf"></i> Export Report as PDF</button>';
+    const backBtn   = '<button class="action-btn btn-back" onclick="window.location.href=\'/dashboard\'"><i class="bi bi-arrow-left"></i> Dashboard</button>';
+
+    const statusBtns = {
+        pending:      `<button class="action-btn btn-shortlist" onclick="updateStatus('shortlisted')"><i class="bi bi-star"></i> Shortlist</button>
+                       <button class="action-btn btn-reject"    onclick="updateStatus('rejected')"><i class="bi bi-x-circle"></i> Reject</button>`,
+        shortlisted:  `<button class="action-btn btn-interview" onclick="updateStatus('interviewing')"><i class="bi bi-chat-dots"></i> Move to Interview</button>
+                       <button class="action-btn btn-reject"    onclick="updateStatus('rejected')"><i class="bi bi-x-circle"></i> Reject</button>`,
+        interviewing: `<button class="action-btn btn-hire"      onclick="updateStatus('hired')"><i class="bi bi-check-circle"></i> Mark as Hired</button>
+                       <button class="action-btn btn-reject"    onclick="updateStatus('rejected')"><i class="bi bi-x-circle"></i> Reject</button>`,
+        hired:        '',
+        rejected:     `<button class="action-btn btn-shortlist" onclick="updateStatus('pending')"><i class="bi bi-arrow-counterclockwise"></i> Restore to Pending</button>`
+    };
+
+    wrap.innerHTML = backBtn + (statusBtns[status] || '') + exportBtn;
+
+    // Re-attach export listener
+    document.getElementById('exportBtn').addEventListener('click', exportPDF);
+}
+
+// ── Update status ─────────────────────────────────────────────
+async function updateStatus(status) {
+    try {
+        const res = await fetch(`/api/recruiter/candidates/${candidateId}/status`, {
+            method:'PATCH', headers:{'Content-Type':'application/json'},
+            credentials:'include', body:JSON.stringify({status})
+        });
+        if ((await res.json()).success) location.reload();
+        else alert('Failed to update status');
+    } catch(e) { console.error(e); }
+}
+
+// ── Skill detail modal ────────────────────────────────────────
+function showSkillModal(index) {
+    const skill = globalSkillsData[index];
+    if (!skill) return;
+
+    const sc   = skill.score || 0;
+    const gap  = 7 - sc;
+    const name = skill.skill || skill.name || 'Skill';
+
+    document.getElementById('skillModalTitle').textContent = name;
+    document.getElementById('skillModalBody').innerHTML = `
+        <div class="modal-score-wrap">
+            <div class="modal-score-label">
+                <span>Proficiency Score</span>
+                <span style="font-size:1.1rem;color:#1e3a8a;">${sc}/10</span>
+            </div>
+            <div class="modal-score-track">
+                <div class="modal-score-fill" style="width:${sc*10}%;">${sc}/10</div>
+            </div>
+            <div style="font-size:.82rem;font-weight:600;margin-top:7px;color:${gap<=0?'#10b981':gap<=2?'#f59e0b':'#ef4444'};">
+                ${gap<=0 ? `<i class="bi bi-check-circle-fill"></i> ${Math.abs(gap)} pt${Math.abs(gap)!==1?'s':''} above benchmark (7/10)`
+                         : `${gap} pt${gap!==1?'s':''} below benchmark (7/10)`}
+            </div>
+        </div>
+
+        <div class="modal-meta-grid">
+            <div class="modal-meta-item"><label>Bloom's Level</label><div class="val">${skill.bloomLevel||'N/A'}</div></div>
+            <div class="modal-meta-item"><label>Has Skill?</label><div class="val">${skill.hasSkill!==undefined?(skill.hasSkill?'Yes ✓':'No ✗'):'N/A'}</div></div>
+            <div class="modal-meta-item"><label>Proficiency</label><div class="val">${skill.proficiencyLevel||'Intermediate'}</div></div>
+            <div class="modal-meta-item"><label>Source</label><div class="val">${skill.skillSource||'AI Assessment'}</div></div>
+        </div>
+
+        ${skill.evidence ? `<div class="mbox mbox-green"><h4><i class="bi bi-file-text"></i> Evidence from CV</h4><p><em>${skill.evidence}</em></p></div>` : ''}
+        ${skill.basis    ? `<div class="mbox mbox-slate"><h4><i class="bi bi-clipboard-check"></i> Assessment Basis</h4><p>${skill.basis}</p></div>` : ''}
+
+        <div class="mbox mbox-blue">
+            <h4><i class="bi bi-lightbulb"></i> Recruiter Note</h4>
+            <p>${sc >= 8 ? `Strong demonstrated proficiency. This candidate can be expected to hit the ground running with ${name}.`
+                        : sc >= 7 ? `Good level of proficiency — meets the benchmark. May need minimal onboarding for ${name}.`
+                        : sc >= 5 ? `Moderate proficiency. ${name} is present but may require structured onboarding or mentoring.`
+                        : `Gap identified. If ${name} is critical for this role, assess in interview or consider targeted training.`}</p>
+        </div>`;
+
+    document.getElementById('modalBackdrop').classList.add('show');
+    document.getElementById('skillModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('modalBackdrop').classList.remove('show');
+    document.getElementById('skillModal').classList.remove('show');
+}
+
+// ================================================================
+//  PDF EXPORT — browser-native print to PDF
+//  Builds a complete self-contained report in a hidden iframe
+//  and calls print() on it. User selects "Save as PDF" in the
+//  browser print dialog.
+// ================================================================
+function exportPDF() {
+    if (!candidateData) return;
+    const c = candidateData;
+
+    const matchPct  = c.match_percentage || 0;
+    const expPct    = c.experience_relevance_score || 0;
+    const skills    = (c.skills || []).slice(0, 15);
+    const strengths = c.strengths || [];
+    const gaps      = c.skill_gaps || [];
+    const training  = c.recommended_training || [];
+    const jc        = c.job_comparison || {};
+    const date      = new Date().toLocaleDateString('en-IE', {year:'numeric',month:'long',day:'numeric'});
+
+    const scoreCol = (pct) => pct >= 70 ? '#065f46' : pct >= 50 ? '#92400e' : '#991b1b';
+    const scoreBg  = (pct) => pct >= 70 ? '#d1fae5' : pct >= 50 ? '#fef3c7' : '#fee2e2';
+
+    const skillRows = skills.map(s => {
+        const sc  = s.score || 0;
+        const bar = Math.round(sc * 10);
+        const col = sc>=8?'#10b981':sc>=7?'#3b82f6':sc>=5?'#f59e0b':'#ef4444';
+        return `<tr>
+            <td style="padding:8px 10px;font-weight:600;font-size:13px;">${s.skill||s.name}</td>
+            <td style="padding:8px 10px;font-size:13px;">${s.bloomLevel||'—'}</td>
+            <td style="padding:8px 10px;">
+                <div style="background:#e5e7eb;border-radius:6px;height:14px;width:160px;overflow:hidden;">
+                    <div style="background:${col};height:100%;width:${bar}%;border-radius:6px;"></div>
+                </div>
+            </td>
+            <td style="padding:8px 10px;font-weight:800;color:${col};font-size:13px;">${sc}/10</td>
+        </tr>`;
+    }).join('');
+
+    const listItems = (arr, fallback) => arr.length
+        ? arr.map(i=>`<li style="margin-bottom:6px;font-size:13px;">${i}</li>`).join('')
+        : `<li style="color:#9ca3af;font-size:13px;">${fallback}</li>`;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Candidate Report — ${c.name}</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; background: white; font-size: 14px; line-height: 1.5; }
+
+    /* ── Cover stripe ── */
+    .cover { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 32px 40px 24px; }
+    .cover .brand { font-size: 11px; font-weight: 700; letter-spacing: .12em; opacity: .7; text-transform: uppercase; margin-bottom: 14px; }
+    .cover h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    .cover .role { font-size: 15px; opacity: .85; margin-bottom: 18px; }
+    .cover-meta { display: flex; gap: 28px; flex-wrap: wrap; }
+    .cover-meta .cm { font-size: 12px; }
+    .cover-meta .cm .label { opacity: .7; text-transform: uppercase; letter-spacing: .06em; font-size: 10px; }
+    .cover-meta .cm .val   { font-weight: 700; font-size: 14px; }
+
+    /* ── Score pills ── */
+    .scores-row { display: flex; gap: 14px; padding: 20px 40px; background: #f8f9fa; border-bottom: 1px solid #e5e7eb; }
+    .score-pill { flex: 1; text-align: center; padding: 14px; border-radius: 10px; }
+    .score-pill .sp-val  { font-size: 28px; font-weight: 800; line-height: 1; }
+    .score-pill .sp-lbl  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+    /* ── Body ── */
+    .body { padding: 28px 40px; }
+
+    .section { margin-bottom: 28px; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #9ca3af; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; }
+
+    /* Skills table */
+    table { width: 100%; border-collapse: collapse; }
+    thead th { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #9ca3af; padding: 6px 10px; border-bottom: 2px solid #f1f5f9; text-align: left; letter-spacing: .06em; }
+    tbody tr:nth-child(even) { background: #f8f9fa; }
+
+    /* Two-col grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .list-card { background: #f8f9fa; border-radius: 8px; padding: 16px; }
+    .list-card h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #555; margin-bottom: 10px; }
+    .list-card ul { list-style: none; padding: 0; }
+    .list-card li { padding: 7px 0 7px 12px; border-left: 3px solid #e5e7eb; margin-bottom: 5px; }
+    .list-card.green li { border-left-color: #10b981; }
+    .list-card.red   li { border-left-color: #ef4444; }
+    .list-card.blue  li { border-left-color: #3b82f6; }
+
+    .hiring-rec { background: linear-gradient(135deg,#eff6ff,#dbeafe); border-left: 4px solid #3b82f6; border-radius: 8px; padding: 16px 18px; margin-bottom: 24px; }
+    .hiring-rec .rec-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #1e3a8a; margin-bottom: 6px; }
+    .hiring-rec .rec-text  { font-size: 13px; color: #1e3b4a; line-height: 1.6; }
+
+    .footer { border-top: 1px solid #e5e7eb; padding: 14px 40px; font-size: 11px; color: #9ca3af; display: flex; justify-content: space-between; margin-top: 10px; }
+
+    @media print {
+        @page { margin: 0; size: A4; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>
+</head>
+<body>
+
+<div class="cover">
+    <div class="brand">CVision · Candidate Report</div>
+    <h1>${c.name || 'Unknown Candidate'}</h1>
+    <div class="role">${c.position_applied || ''}</div>
+    <div class="cover-meta">
+        <div class="cm"><div class="label">Status</div><div class="val">${(c.status||'pending').toUpperCase()}</div></div>
+        <div class="cm"><div class="label">Report Date</div><div class="val">${date}</div></div>
+        ${c.email ? `<div class="cm"><div class="label">Email</div><div class="val">${c.email}</div></div>` : ''}
+        ${c.phone ? `<div class="cm"><div class="label">Phone</div><div class="val">${c.phone}</div></div>` : ''}
+        <div class="cm"><div class="label">Uploaded</div><div class="val">${c.uploaded_at ? new Date(c.uploaded_at).toLocaleDateString('en-IE') : '—'}</div></div>
+    </div>
+</div>
+
+<div class="scores-row">
+    <div class="score-pill" style="background:${scoreBg(matchPct)};color:${scoreCol(matchPct)};">
+        <div class="sp-val">${matchPct}%</div>
+        <div class="sp-lbl">Skill Match</div>
+    </div>
+    <div class="score-pill" style="background:${scoreBg(expPct)};color:${scoreCol(expPct)};">
+        <div class="sp-val">${expPct}%</div>
+        <div class="sp-lbl">Experience Relevance</div>
+    </div>
+    <div class="score-pill" style="background:#f8f9fa;color:#1e293b;">
+        <div class="sp-val">${skills.length}</div>
+        <div class="sp-lbl">Skills Found</div>
+    </div>
+    <div class="score-pill" style="background:#f8f9fa;color:#1e293b;">
+        <div class="sp-val">${skills.filter(s=>s.score>=7).length}</div>
+        <div class="sp-lbl">Above Benchmark</div>
+    </div>
+</div>
+
+<div class="body">
+
+    ${jc.hiringRecommendation || c.hiring_recommendation ? `
+    <div class="hiring-rec">
+        <div class="rec-label"><i>Hiring Recommendation</i></div>
+        <div class="rec-text">${jc.hiringRecommendation || c.hiring_recommendation}</div>
+    </div>` : ''}
+
+    <!-- Skills table -->
+    <div class="section">
+        <div class="section-title">Skill Assessment — Bloom's Taxonomy</div>
+        <table>
+            <thead><tr><th>Skill</th><th>Bloom's Level</th><th>Proficiency</th><th>Score</th></tr></thead>
+            <tbody>${skillRows}</tbody>
+        </table>
+    </div>
+
+    <!-- Strengths + Gaps -->
+    <div class="section two-col">
+        <div class="list-card green">
+            <h3>Strengths</h3>
+            <ul>${listItems(strengths, 'No strengths data available')}</ul>
+        </div>
+        <div class="list-card red">
+            <h3>Skill Gaps</h3>
+            <ul>${listItems(gaps, 'No skill gaps identified')}</ul>
+        </div>
+    </div>
+
+    <!-- Training -->
+    ${training.length ? `
+    <div class="section">
+        <div class="section-title">Recommended Training if Hired</div>
+        <div class="list-card blue">
+            <ul>${listItems(training, '')}</ul>
+        </div>
+    </div>` : ''}
+
+</div>
+
+<div class="footer">
+    <span>Generated by CVision &nbsp;·&nbsp; ${date}</span>
+    <span>Confidential — for internal recruitment use only</span>
+</div>
+
+</body>
+</html>`;
+
+    // Write into a hidden iframe and print it
+    let iframe = document.getElementById('pdfFrame');
+    if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'pdfFrame';
+        iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:210mm;height:297mm;border:none;';
+        document.body.appendChild(iframe);
     }
 
-    // Action Buttons
-    document.getElementById('shortlistBtn').addEventListener('click', async () => {
-        if (confirm('Shortlist this candidate?')) {
-            await updateStatus('shortlisted');
-        }
-    });
+    iframe.srcdoc = html;
+    iframe.onload = () => {
+        // Small delay so Chart.js bar backgrounds render before print
+        setTimeout(() => { iframe.contentWindow.print(); }, 400);
+    };
+}
 
-    document.getElementById('rejectBtn').addEventListener('click', async () => {
-        if (confirm('Reject this candidate?')) {
-            await updateStatus('rejected');
-        }
-    });
+// ── Logout ────────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', async e => {
+    e.preventDefault();
+    if (confirm('Logout?')) { await fetch('/logout', {method:'POST'}); window.location.href = '/'; }
+});
 
-    document.getElementById('exportBtn').addEventListener('click', () => {
-        alert('PDF export feature coming soon!');
-        // TODO: Implement PDF generation
-    });
-
-    async function updateStatus(status) {
-        try {
-            const response = await fetch(`/api/recruiter/candidates/${candidateId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ status })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert(`Candidate ${status}!`);
-                location.reload();
-            } else {
-                alert('Failed to update status');
-            }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Error updating candidate status');
-        }
-    }
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (confirm('Logout?')) {
-            await fetch('/logout', { method: 'POST' });
-            window.location.href = '/';
-        }
-    });
-
-    // Load on page load
-    loadCandidateAnalysis();
+// ── Init ──────────────────────────────────────────────────────
+loadCandidateAnalysis();
 </script>
 
 </body>

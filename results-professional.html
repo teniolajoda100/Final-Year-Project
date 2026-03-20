@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Professional Analysis - CVision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <link href="css/results-professional.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="assets/logo.png" alt="CVision Logo">
+        </a>
+        <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/upload">Upload CV</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
+            <li class="nav-item ms-3" id="profileNav" style="display:none;">
+                <a href="/profile" class="profile-btn">
+                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="results-wrapper">
+
+    <!-- Header -->
+    <div class="results-header">
+        <h1><i class="bi bi-briefcase-fill"></i> Professional Career Analysis</h1>
+        <p id="userInfo">Loading analysis...</p>
+        <div class="header-actions">
+            <a href="/dashboard" class="header-btn"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+            <a href="/upload" class="header-btn"><i class="bi bi-upload"></i> Upload New CV</a>
+        </div>
+    </div>
+
+    <!-- ① Role & Salary Context Input -->
+    <div class="context-input-card">
+        <h3><i class="bi bi-person-badge"></i> Personalise Your Analysis</h3>
+        <p class="card-sub">Enter your current role and salary so we can give you a more accurate comparison</p>
+
+        <div class="context-input-grid">
+            <div class="context-field">
+                <label for="userRole">Your Current Role <span style="color:#888;font-weight:400;">(optional)</span></label>
+                <input type="text" id="userRole" placeholder="e.g. Software Engineer, Data Analyst…" />
+            </div>
+            <div class="context-field">
+                <label for="userSalary">Your Current Salary (€) <span style="color:#888;font-weight:400;">(optional)</span></label>
+                <input type="number" id="userSalary" placeholder="e.g. 65000" min="0" step="1000" />
+            </div>
+            <div class="context-field context-field--btn">
+                <button class="context-apply-btn" id="applyContextBtn" onclick="applyUserContext()">
+                    <i class="bi bi-arrow-repeat"></i> Update Analysis
+                </button>
+            </div>
+        </div>
+
+        <div id="contextConfirmation" class="context-confirm" style="display:none;"></div>
+    </div>
+
+    <!-- ② Salary Banner — fully clickable -->
+    <div class="salary-banner" onclick="showSalaryInsightModal()">
+        <div class="salary-banner-header">
+            <div>
+                <h2><i class="bi bi-currency-euro"></i> Your Market Value (EUR)</h2>
+                <p style="opacity:0.9; margin:0;">Based on experience level, skills assessment, and European market benchmarks</p>
+            </div>
+            <div class="salary-click-pill">
+                <i class="bi bi-info-circle"></i> Click for full breakdown &amp; data sources
+            </div>
+        </div>
+
+        <div class="salary-grid">
+            <div class="salary-item">
+                <div class="label">Current Range</div>
+                <div class="amount" id="currentSalary">€--</div>
+            </div>
+            <div class="salary-item">
+                <div class="label">Market Average</div>
+                <div class="amount" id="marketAverage">€--</div>
+            </div>
+            <div class="salary-item">
+                <div class="label">Top 10%</div>
+                <div class="amount" id="topEarners">€--</div>
+            </div>
+            <div class="salary-item">
+                <div class="label">Growth Potential</div>
+                <div class="amount" id="growthPotential" style="color:#34d399;">+€--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ③ Career Metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card" onclick="showMetricDetail('competitiveness')">
+            <h3><i class="bi bi-trophy"></i> Market Competitiveness</h3>
+            <div class="progress-bar-custom">
+                <div class="progress-fill" id="marketComp" style="width:0%">0%</div>
+            </div>
+            <p style="color:#666; font-size:0.9rem; margin-bottom:4px;">How you compare to industry peers</p>
+            <p class="metric-hint"><i class="bi bi-cursor-fill"></i> Click for detailed breakdown</p>
+        </div>
+
+        <div class="metric-card" onclick="showMetricDetail('leadership')">
+            <h3><i class="bi bi-people-fill"></i> Leadership Readiness</h3>
+            <div class="progress-bar-custom">
+                <div class="progress-fill" id="leadershipReady" style="width:0%">0%</div>
+            </div>
+            <p style="color:#666; font-size:0.9rem; margin-bottom:4px;">Ready for management roles</p>
+            <p class="metric-hint"><i class="bi bi-cursor-fill"></i> Click for detailed breakdown</p>
+        </div>
+
+        <div class="metric-card" onclick="showMetricDetail('diversification')">
+            <h3><i class="bi bi-lightning"></i> Skill Diversification</h3>
+            <div class="progress-bar-custom">
+                <div class="progress-fill" id="skillDiverse" style="width:0%">0%</div>
+            </div>
+            <p style="color:#666; font-size:0.9rem; margin-bottom:4px;">Breadth of expertise</p>
+            <p class="metric-hint"><i class="bi bi-cursor-fill"></i> Click for detailed breakdown</p>
+        </div>
+    </div>
+
+    <!-- ④ Skills Chart — clickable bars -->
+    <div class="skills-section">
+        <h2><i class="bi bi-bar-chart"></i> Your Skills vs. Industry Standards</h2>
+        <p style="color:#666; margin-bottom:4px;">Top skills compared to European market benchmarks</p>
+        <p class="interact-hint" style="margin-bottom:20px;">
+            <i class="bi bi-cursor-fill"></i> Click any bar for a Bloom's Taxonomy breakdown and industry expectations
+        </p>
+        <canvas id="skillsChart"></canvas>
+    </div>
+
+    <!-- ⑤ Career Transitions -->
+    <div class="transitions-card">
+        <h2><i class="bi bi-arrows-move"></i> Explore Career Transitions</h2>
+        <p class="card-sub">See your readiness for different roles based on your transferable skills</p>
+        <p class="interact-hint"><i class="bi bi-cursor-fill"></i> Click any role to see your personalised transition readiness</p>
+
+        <div class="transition-options">
+            <button class="transition-btn" onclick="analyzeTransition('Product Manager', this)">
+                <i class="bi bi-diagram-3"></i> Product Manager
+            </button>
+            <button class="transition-btn" onclick="analyzeTransition('Data Scientist', this)">
+                <i class="bi bi-graph-up"></i> Data Scientist
+            </button>
+            <button class="transition-btn" onclick="analyzeTransition('Engineering Manager', this)">
+                <i class="bi bi-people"></i> Engineering Manager
+            </button>
+            <button class="transition-btn" onclick="analyzeTransition('Solution Architect', this)">
+                <i class="bi bi-cpu"></i> Solution Architect
+            </button>
+            <button class="transition-btn" onclick="analyzeTransition('Business Analyst', this)">
+                <i class="bi bi-clipboard-data"></i> Business Analyst
+            </button>
+            <button class="transition-btn" onclick="analyzeTransition('DevOps Engineer', this)">
+                <i class="bi bi-gear"></i> DevOps Engineer
+            </button>
+        </div>
+
+        <!-- Custom role input -->
+        <div class="custom-job-row">
+            <input type="text" id="customTransitionJob"
+                   placeholder="Or type any role, e.g. 'AI Engineer', 'UX Designer'…" />
+            <button class="custom-job-btn" id="customTransitionBtn" onclick="runCustomTransition()">
+                <i class="bi bi-search"></i> Analyse Role
+            </button>
+        </div>
+    </div>
+
+    <!-- ⑥ Next Steps -->
+    <div class="next-steps">
+        <h2><i class="bi bi-rocket-takeoff"></i> Your Next Steps for Career Growth</h2>
+        <ul id="nextStepsList"><li>Loading recommendations...</li></ul>
+    </div>
+
+</div>
+
+<!-- Modal (shared for all modals on this page) -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()"></div>
+<div class="career-modal" id="careerModal">
+    <div class="modal-header">
+        <h3 id="modalTitle">Analysis</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modalContent"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/results-professional.js"></script>
+
+</body>
+</html>

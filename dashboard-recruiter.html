@@ -4,516 +4,387 @@
     <meta charset="UTF-8">
     <title>Recruiter Dashboard - CVision</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
     <link href="css/recruiter-dashboard.css" rel="stylesheet">
+    <style>
+        .pipeline-board{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:start;}
+        .pipeline-col{background:#f8f9fa;border-radius:10px;padding:14px;min-height:100px;}
+        .pipeline-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #e5e7eb;}
+        .col-title{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:6px;}
+        .col-count{font-size:.75rem;font-weight:700;background:white;padding:2px 8px;border-radius:10px;color:#555;}
+        .col-pending .pipeline-col-header{border-color:#9ca3af;}.col-pending .col-title{color:#6b7280;}
+        .col-shortlist .pipeline-col-header{border-color:#3b82f6;}.col-shortlist .col-title{color:#1e3a8a;}
+        .col-interview .pipeline-col-header{border-color:#f59e0b;}.col-interview .col-title{color:#92400e;}
+        .col-hired .pipeline-col-header{border-color:#10b981;}.col-hired .col-title{color:#065f46;}
+        .col-rejected .pipeline-col-header{border-color:#ef4444;}.col-rejected .col-title{color:#991b1b;}
+        .pipeline-card{background:white;border-radius:8px;padding:11px;margin-bottom:9px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+        .pipeline-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.11);}
+        .col-pending .pipeline-card{border-left-color:#9ca3af;}.col-shortlist .pipeline-card{border-left-color:#3b82f6;}
+        .col-interview .pipeline-card{border-left-color:#f59e0b;}.col-hired .pipeline-card{border-left-color:#10b981;}
+        .col-rejected .pipeline-card{border-left-color:#ef4444;}
+        .pc-name{font-weight:700;font-size:.85rem;margin-bottom:2px;}
+        .pc-role{font-size:.75rem;color:#888;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .pc-score{display:flex;align-items:center;gap:6px;font-size:.75rem;}
+        .score-pill{padding:2px 7px;border-radius:10px;color:white;font-weight:700;font-size:.72rem;}
+        .pc-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+        .pc-btn{font-size:.7rem;padding:3px 8px;border:none;border-radius:5px;cursor:pointer;font-weight:700;transition:all .2s;display:inline-flex;align-items:center;gap:3px;}
+        .pc-btn:hover{transform:translateY(-1px);}
+        .pc-btn-view{background:#e8f1f8;color:#1e3a8a;}.pc-btn-shortlist{background:#dbeafe;color:#1e3a8a;}
+        .pc-btn-interview{background:#fef3c7;color:#92400e;}.pc-btn-hire{background:#d1fae5;color:#065f46;}
+        .pc-btn-reject{background:#fee2e2;color:#991b1b;}
+        .pipeline-empty{text-align:center;color:#9ca3af;font-size:.8rem;padding:14px 6px;}
+        .criteria-bar{background:white;border:2px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+        .criteria-bar label{font-size:.8rem;font-weight:700;color:#555;margin-bottom:0;}
+        .criteria-bar input[type=range]{width:100px;}
+        .crit-val{font-weight:800;color:#1e3a8a;min-width:36px;font-size:.9rem;}
+        .criteria-actions{margin-left:auto;display:flex;align-items:center;gap:10px;}
+        .info-btn{width:32px;height:32px;border-radius:50%;background:#f0f7ff;border:2px solid #3b82f6;color:#3b82f6;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all .2s;flex-shrink:0;}
+        .info-btn:hover{background:#3b82f6;color:white;}
+        .auto-shortlist-btn{padding:9px 18px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:all .25s;font-size:.88rem;display:flex;align-items:center;gap:7px;}
+        .auto-shortlist-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(30,58,138,.3);}
+        .upload-result-toast{display:none;padding:14px 18px;border-radius:8px;margin-top:12px;font-size:.88rem;line-height:1.6;}
+        .upload-result-toast.success{background:#d1fae5;border-left:4px solid #10b981;color:#065f46;}
+        .upload-result-toast.error{background:#fee2e2;border-left:4px solid #ef4444;color:#991b1b;}
+        .bulk-upload-zone{border:2px dashed #9ca3af;border-radius:10px;padding:30px;text-align:center;background:#fafafa;cursor:pointer;transition:all .25s;}
+        .bulk-upload-zone:hover,.bulk-upload-zone.dragover{border-color:#3b82f6;background:#eff6ff;}
+        .bulk-upload-zone i{font-size:2.5rem;color:#9ca3af;display:block;margin-bottom:10px;}
+        .bulk-upload-zone.dragover i{color:#3b82f6;}
+        .bulk-upload-zone p{color:#6b7280;margin:0;font-size:.9rem;}
+        .bulk-file-list{margin-top:14px;list-style:none;padding:0;max-height:220px;overflow-y:auto;}
+        .bulk-file-row{background:#f8f9fa;border-radius:9px;margin-bottom:10px;font-size:.85rem;overflow:hidden;border:1.5px solid #e5e7eb;}
+        .bulk-file-row-top{display:flex;align-items:center;gap:10px;padding:9px 12px;}
+        .bulk-file-row-fields{padding:0 12px 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .bulk-row-input{padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:.83rem;width:100%;outline:none;transition:border-color .2s;}
+        .bulk-row-input:focus{border-color:#3b82f6;}
+        .bulk-row-jd{grid-column:1/-1;}
+        .bulk-row-label{font-size:.72rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;display:block;}
+        .bfr-name{flex:1;font-weight:600;}.bfr-size{color:#9ca3af;font-size:.78rem;}
+        .bfr-remove{background:none;border:none;color:#ef4444;cursor:pointer;font-size:.9rem;padding:0;}
+        .bulk-field-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+        .bulk-field-row>div{flex:1;min-width:180px;}
+        .bulk-field-row label{font-size:.82rem;font-weight:700;color:#374151;margin-bottom:4px;display:block;}
+        .bulk-field-row input{padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:7px;width:100%;font-size:.9rem;}
+        .bulk-start-btn{width:100%;padding:13px;background:linear-gradient(135deg,#FF5722,#FF7043);color:white;border:none;border-radius:8px;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .bulk-start-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 14px rgba(255,87,34,.3);}
+        .bulk-start-btn:disabled{background:#9ca3af;cursor:not-allowed;transform:none;}
+        .bulk-progress-bar{height:6px;background:#e5e7eb;border-radius:3px;margin-top:10px;overflow:hidden;}
+        .bulk-progress-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:3px;transition:width .3s;}
+        .info-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;}
+        .info-modal-backdrop.show{display:flex;}
+        .info-modal{background:white;border-radius:14px;padding:28px;max-width:560px;width:92%;max-height:84vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.2);animation:iSlide .3s;}
+        @keyframes iSlide{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .info-modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e8e8e8;}
+        .info-modal-header h3{margin:0;font-size:1.2rem;font-weight:800;color:#2C3E50;}
+        .info-close{background:none;border:none;font-size:1.8rem;cursor:pointer;color:#aaa;line-height:1;}
+        .info-close:hover{color:#333;}
+        .cer{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#f8f9fa;border-radius:8px;margin-bottom:8px;}
+        .cer .ci{font-size:1.4rem;color:#3b82f6;flex-shrink:0;}
+        .cer .ct{font-weight:700;font-size:.9rem;color:#1e3a8a;margin-bottom:3px;}
+        .cer .cd{font-size:.82rem;color:#555;line-height:1.5;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spin{animation:spin 1s linear infinite;display:inline-block;}
+        @media(max-width:1100px){.pipeline-board{grid-template-columns:repeat(3,1fr);}}
+        @media(max-width:700px){.pipeline-board{grid-template-columns:1fr 1fr;}}
+        @media(max-width:480px){.pipeline-board{grid-template-columns:1fr;}}
+    </style>
 </head>
-
 <body>
-
-<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="/">
-            <img src="assets/logo.png" alt="CVision Logo">
-        </a>
-
+        <a class="navbar-brand" href="/"><img src="assets/logo.png" alt="CVision Logo"></a>
         <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item"><a class="nav-link active" href="/dashboard">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
-            <li class="nav-item">
-                <a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a>
-            </li>
-            <li class="nav-item ms-3">
-                <a href="/profile" class="profile-btn">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
-                </a>
-            </li>
+            <li class="nav-item"><a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a></li>
+            <li class="nav-item ms-3"><a href="/profile" class="profile-btn"><img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile"></a></li>
         </ul>
     </div>
 </nav>
 
-<!-- DASHBOARD CONTENT -->
 <div class="dashboard-wrapper">
-    
-    <!-- Header -->
     <div class="dashboard-header">
         <h1><i class="bi bi-people"></i> Recruiter Dashboard</h1>
-        <p id="welcomeText">Welcome back! Manage your candidates and track hiring progress.</p>
+        <p id="welcomeText">Manage your pipeline and track hiring progress.</p>
     </div>
 
-    <!-- Stats Grid -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Total Candidates</h3>
-            <div class="value" id="totalCandidates">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Pending Review</h3>
-            <div class="value" id="pendingCount">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Shortlisted</h3>
-            <div class="value" id="shortlistedCount">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Hired</h3>
-            <div class="value" id="hiredCount">0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Avg Match %</h3>
-            <div class="value" id="avgMatch">0%</div>
-        </div>
+        <div class="stat-card"><h3>Total Candidates</h3><div class="value" id="totalCandidates">0</div></div>
+        <div class="stat-card"><h3>Pending Review</h3><div class="value" id="pendingCount">0</div></div>
+        <div class="stat-card"><h3>Shortlisted</h3><div class="value" id="shortlistedCount">0</div></div>
+        <div class="stat-card"><h3>Interviewing</h3><div class="value" id="interviewingCount">0</div></div>
+        <div class="stat-card"><h3>Hired</h3><div class="value" id="hiredCount">0</div></div>
+        <div class="stat-card"><h3>Avg Match %</h3><div class="value" id="avgMatch">0%</div></div>
     </div>
 
-    <!-- Upload Section -->
     <div class="upload-section">
-        <h2><i class="bi bi-upload"></i> Upload New Candidate CV</h2>
-        
-        <!-- Tab Navigation -->
+        <h2><i class="bi bi-upload"></i> Upload Candidate CV</h2>
         <ul class="nav nav-tabs mb-4" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button">
-                    <i class="bi bi-file-person"></i> Quick Upload
-                </button>
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button"><i class="bi bi-file-person"></i> Single Candidate</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed-panel" type="button">
-                    <i class="bi bi-file-text"></i> With Job Description
-                </button>
+                <button class="nav-link" id="bulk-tab" data-bs-toggle="tab" data-bs-target="#bulk-panel" type="button"><i class="bi bi-files"></i> Bulk Upload</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed-panel" type="button"><i class="bi bi-file-text"></i> With Job Description</button>
             </li>
         </ul>
-
-        <!-- Tab Content -->
         <div class="tab-content">
-            
-            <!-- QUICK UPLOAD TAB -->
             <div class="tab-pane fade show active" id="upload-panel">
-                <form id="uploadForm" enctype="multipart/form-data">
+                <form id="uploadForm">
                     <div class="upload-form-grid">
-                        <div>
-                            <label class="form-label">Candidate Name *</label>
-                            <input type="text" class="form-control" id="candidateName" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Position Applied *</label>
-                            <input type="text" class="form-control" id="jobTitle" required placeholder="e.g. Software Engineer">
-                            <small class="text-muted">We'll analyse requirements automatically</small>
-                        </div>
-                        <div>
-                            <label class="form-label">Email (optional)</label>
-                            <input type="email" class="form-control" id="email">
-                        </div>
-                        <div>
-                            <label class="form-label">Phone (optional)</label>
-                            <input type="tel" class="form-control" id="phone">
-                        </div>
-                        <div class="full-width">
-                            <label class="form-label">CV File (PDF, DOC, DOCX) *</label>
-                            <input type="file" class="form-control" id="cvFile" accept=".pdf,.doc,.docx" required>
-                        </div>
-                        <div class="full-width">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
-                                <i class="bi bi-cloud-upload"></i> Analyse Candidate CV
-                            </button>
-                        </div>
+                        <div><label class="form-label">Candidate Name *</label><input type="text" class="form-control" id="candidateName" required></div>
+                        <div><label class="form-label">Position Applied *</label><input type="text" class="form-control" id="jobTitle" required placeholder="e.g. Software Engineer"><small class="text-muted">Requirements analysed automatically</small></div>
+                        <div><label class="form-label">Email (optional)</label><input type="email" class="form-control" id="email"></div>
+                        <div><label class="form-label">Phone (optional)</label><input type="tel" class="form-control" id="phone"></div>
+                        <div class="full-width"><label class="form-label">CV File (PDF, DOC, DOCX) *</label><input type="file" class="form-control" id="cvFile" accept=".pdf,.doc,.docx" required></div>
+                        <div class="full-width"><button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn"><i class="bi bi-cloud-upload"></i> Analyse Candidate CV</button></div>
                     </div>
                 </form>
+                <div class="upload-result-toast" id="quickUploadResult"></div>
             </div>
 
-            <!-- DETAILED UPLOAD WITH JOB DESCRIPTION TAB -->
+            <div class="tab-pane fade" id="bulk-panel">
+                <p style="color:#555;font-size:.9rem;margin-bottom:16px;">
+                    Upload multiple CVs at once. Add a name and optional job description for each candidate — or leave them blank and names will be extracted from the CV automatically.
+                </p>
+
+                <!-- Shared position for all -->
+                <div class="bulk-field-row">
+                    <div>
+                        <label>Position Applied (for all) *</label>
+                        <input type="text" id="bulkJobTitle" placeholder="e.g. Software Engineer">
+                    </div>
+                </div>
+
+                <!-- Shared JD toggle -->
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <label style="font-size:.82rem;font-weight:700;color:#374151;margin:0;">Shared Job Description</label>
+                        <span style="font-size:.78rem;color:#9ca3af;">(optional — applied to all CVs unless overridden per candidate)</span>
+                    </div>
+                    <div class="btn-group mb-2" role="group">
+                        <input type="radio" class="btn-check" name="bulkJdMode" id="bulkJdNone" value="none" checked>
+                        <label class="btn btn-outline-secondary btn-sm" for="bulkJdNone"><i class="bi bi-dash"></i> None</label>
+                        <input type="radio" class="btn-check" name="bulkJdMode" id="bulkJdSharedText" value="text">
+                        <label class="btn btn-outline-primary btn-sm" for="bulkJdSharedText"><i class="bi bi-keyboard"></i> Paste Text</label>
+                        <input type="radio" class="btn-check" name="bulkJdMode" id="bulkJdSharedFile" value="file">
+                        <label class="btn btn-outline-primary btn-sm" for="bulkJdSharedFile"><i class="bi bi-file-earmark-text"></i> Upload File</label>
+                    </div>
+                    <div id="bulkSharedJdText" style="display:none;">
+                        <textarea class="form-control form-control-sm" id="bulkSharedJdContent" rows="4" placeholder="Paste the job description here — will be applied to all candidates…"></textarea>
+                    </div>
+                    <div id="bulkSharedJdFile" style="display:none;">
+                        <input type="file" class="form-control form-control-sm" id="bulkSharedJdFileInput" accept=".pdf,.doc,.docx,.txt">
+                        <small class="text-muted">PDF, DOC, DOCX, or TXT</small>
+                    </div>
+                </div>
+
+                <!-- Drop zone -->
+                <div class="bulk-upload-zone" id="bulkDropZone">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <p><strong>Drag &amp; drop CVs here</strong> or click to select</p>
+                    <p style="font-size:.8rem;color:#9ca3af;margin-top:6px;">PDF, DOC, DOCX &middot; Max 5MB each &middot; Multiple files</p>
+                    <input type="file" id="bulkFileInput" multiple accept=".pdf,.doc,.docx" style="display:none;">
+                </div>
+
+                <!-- File list with per-file fields -->
+                <ul class="bulk-file-list" id="bulkFileList"></ul>
+
+                <div id="bulkProgressWrap" style="display:none;">
+                    <div style="font-size:.82rem;color:#555;margin-bottom:4px;" id="bulkProgressLabel">Analysing…</div>
+                    <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulkProgressFill" style="width:0%;"></div></div>
+                </div>
+                <button class="bulk-start-btn" id="bulkStartBtn" style="margin-top:16px;" disabled onclick="startBulkUpload()">
+                    <i class="bi bi-play-circle"></i> Start Bulk Analysis
+                </button>
+                <div class="upload-result-toast" id="bulkUploadResult"></div>
+            </div>
+
             <div class="tab-pane fade" id="detailed-panel">
-                <form id="detailedUploadForm" enctype="multipart/form-data">
+                <form id="detailedUploadForm">
                     <div class="upload-form-grid">
-                        <div>
-                            <label class="form-label">Candidate Name *</label>
-                            <input type="text" class="form-control" id="candidateNameDetailed" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Position Applied *</label>
-                            <input type="text" class="form-control" id="jobTitleDetailed" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Email (optional)</label>
-                            <input type="email" class="form-control" id="emailDetailed">
-                        </div>
-                        <div>
-                            <label class="form-label">Phone (optional)</label>
-                            <input type="tel" class="form-control" id="phoneDetailed">
-                        </div>
+                        <div><label class="form-label">Candidate Name *</label><input type="text" class="form-control" id="candidateNameDetailed" required></div>
+                        <div><label class="form-label">Position Applied *</label><input type="text" class="form-control" id="jobTitleDetailed" required></div>
+                        <div><label class="form-label">Email (optional)</label><input type="email" class="form-control" id="emailDetailed"></div>
+                        <div><label class="form-label">Phone (optional)</label><input type="tel" class="form-control" id="phoneDetailed"></div>
+                        <div class="full-width"><label class="form-label">Candidate CV File *</label><input type="file" class="form-control" id="cvFileDetailed" accept=".pdf,.doc,.docx" required></div>
                         <div class="full-width">
-                            <label class="form-label">Candidate CV File *</label>
-                            <input type="file" class="form-control" id="cvFileDetailed" accept=".pdf,.doc,.docx" required>
-                        </div>
-                        <div class="full-width">
-                            <label class="form-label">
-                                <i class="bi bi-file-text"></i> Job Description *
-                            </label>
-                            <div class="job-description-options">
-                                <div class="btn-group w-100 mb-3" role="group">
-                                    <input type="radio" class="btn-check" name="jdOption" id="jdText" value="text" checked>
-                                    <label class="btn btn-outline-primary" for="jdText">
-                                        <i class="bi bi-keyboard"></i> Paste Text
-                                    </label>
-                                    
-                                    <input type="radio" class="btn-check" name="jdOption" id="jdFile" value="file">
-                                    <label class="btn btn-outline-primary" for="jdFile">
-                                        <i class="bi bi-file-earmark-text"></i> Upload File
-                                    </label>
-                                </div>
-
-                                <!-- Text Area Option -->
-                                <div id="jdTextArea" class="jd-option">
-                                    <textarea class="form-control" id="jobDescriptionText" rows="8" placeholder="Paste the full job description here...
-
-Example:
-We are seeking a Senior Software Engineer with 5+ years experience in:
-- React, Node.js, TypeScript
-- AWS cloud services
-- Leading technical teams
-..." required></textarea>
-                                </div>
-
-                                <!-- File Upload Option -->
-                                <div id="jdFileArea" class="jd-option" style="display: none;">
-                                    <input type="file" class="form-control" id="jobDescriptionFile" accept=".pdf,.doc,.docx,.txt" required>
-                                    <small class="text-muted">Upload job description as PDF, DOC, DOCX, or TXT</small>
-                                </div>
+                            <label class="form-label"><i class="bi bi-file-text"></i> Job Description *</label>
+                            <div class="btn-group w-100 mb-3" role="group">
+                                <input type="radio" class="btn-check" name="jdOption" id="jdText" value="text" checked>
+                                <label class="btn btn-outline-primary" for="jdText"><i class="bi bi-keyboard"></i> Paste Text</label>
+                                <input type="radio" class="btn-check" name="jdOption" id="jdFile" value="file">
+                                <label class="btn btn-outline-primary" for="jdFile"><i class="bi bi-file-earmark-text"></i> Upload File</label>
                             </div>
+                            <div id="jdTextArea"><textarea class="form-control" id="jobDescriptionText" rows="7" placeholder="Paste the full job description here…"></textarea></div>
+                            <div id="jdFileArea" style="display:none;"><input type="file" class="form-control" id="jobDescriptionFile" accept=".pdf,.doc,.docx,.txt"><small class="text-muted">PDF, DOC, DOCX, or TXT</small></div>
                         </div>
-                        <div class="full-width">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="detailedUploadBtn">
-                                <i class="bi bi-rocket"></i> Analyse with Job Description
-                            </button>
-                        </div>
+                        <div class="full-width"><button type="submit" class="btn btn-primary btn-lg w-100" id="detailedUploadBtn"><i class="bi bi-rocket"></i> Analyse with Job Description</button></div>
                     </div>
                 </form>
+                <div class="upload-result-toast" id="detailedUploadResult"></div>
             </div>
-
         </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <label>Filter by Status:</label>
-        <span class="filter-badge active" data-status="all">All</span>
-        <span class="filter-badge" data-status="pending">Pending</span>
-        <span class="filter-badge" data-status="shortlisted">Shortlisted</span>
-        <span class="filter-badge" data-status="interviewing">Interviewing</span>
-        <span class="filter-badge" data-status="hired">Hired</span>
-        <span class="filter-badge" data-status="rejected">Rejected</span>
-    </div>
-
-    <!-- Candidates Grid -->
-    <h2 style="margin-bottom: 20px; font-weight: 700;">Your Candidates</h2>
-    <div class="candidates-grid" id="candidatesGrid">
-        <div class="empty-state">
-            <i class="bi bi-hourglass-split"></i>
-            <p>Loading candidates...</p>
+    <div class="pipeline-section" style="margin-bottom:40px;">
+        <h2 style="font-size:1.25rem;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:10px;"><i class="bi bi-funnel"></i> Shortlisting Pipeline</h2>
+        <p style="color:#666;font-size:.88rem;margin-bottom:16px;">Move candidates through each stage manually, or use Auto-Shortlist to filter by criteria.</p>
+        <div class="criteria-bar">
+            <div style="display:flex;align-items:center;gap:10px;"><label>Min Match %</label><input type="range" id="minMatch" min="0" max="100" value="60" step="5" oninput="document.getElementById('minMatchVal').textContent=this.value+'%'"><span class="crit-val" id="minMatchVal">60%</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><label>Min Experience %</label><input type="range" id="minExp" min="0" max="100" value="50" step="5" oninput="document.getElementById('minExpVal').textContent=this.value+'%'"><span class="crit-val" id="minExpVal">50%</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><label>Position</label><input type="text" id="filterPosition" placeholder="Any" style="padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:.85rem;width:150px;"></div>
+            <div class="criteria-actions">
+                <button class="info-btn" onclick="showShortlistInfo()" title="How does auto-shortlisting work?"><i class="bi bi-question-lg"></i></button>
+                <button class="auto-shortlist-btn" onclick="runAutoShortlist()"><i class="bi bi-magic"></i> Auto-Shortlist</button>
+            </div>
+        </div>
+        <div class="pipeline-board">
+            <div class="pipeline-col col-pending"><div class="pipeline-col-header"><span class="col-title"><i class="bi bi-inbox"></i> Pending</span><span class="col-count" id="col-count-pending">0</span></div><div id="col-pending"></div></div>
+            <div class="pipeline-col col-shortlist"><div class="pipeline-col-header"><span class="col-title"><i class="bi bi-star"></i> Shortlisted</span><span class="col-count" id="col-count-shortlisted">0</span></div><div id="col-shortlisted"></div></div>
+            <div class="pipeline-col col-interview"><div class="pipeline-col-header"><span class="col-title"><i class="bi bi-chat-dots"></i> Interviewing</span><span class="col-count" id="col-count-interviewing">0</span></div><div id="col-interviewing"></div></div>
+            <div class="pipeline-col col-hired"><div class="pipeline-col-header"><span class="col-title"><i class="bi bi-check-circle"></i> Hired</span><span class="col-count" id="col-count-hired">0</span></div><div id="col-hired"></div></div>
+            <div class="pipeline-col col-rejected"><div class="pipeline-col-header"><span class="col-title"><i class="bi bi-x-circle"></i> Rejected</span><span class="col-count" id="col-count-rejected">0</span></div><div id="col-rejected"></div></div>
         </div>
     </div>
+</div>
 
+<div class="info-modal-backdrop" id="shortlistInfoBackdrop" onclick="hideShortlistInfo()">
+    <div class="info-modal" onclick="event.stopPropagation()">
+        <div class="info-modal-header">
+            <h3><i class="bi bi-magic" style="color:#3b82f6;margin-right:8px;"></i> How Auto-Shortlisting Works</h3>
+            <button class="info-close" onclick="hideShortlistInfo()">&times;</button>
+        </div>
+        <p style="color:#555;font-size:.88rem;margin-bottom:16px;line-height:1.6;">Auto-shortlisting scans all <strong>Pending</strong> candidates and moves eligible ones to <strong>Shortlisted</strong> in one click, based on the criteria you set.</p>
+        <div class="cer"><i class="bi bi-bar-chart-fill ci"></i><div><div class="ct">Min Match %</div><div class="cd">The minimum skill match score. Calculated by comparing the candidate's skills against the required skills for the role. 60%+ means most critical skills are present.</div></div></div>
+        <div class="cer"><i class="bi bi-calendar-check-fill ci" style="color:#10b981;"></i><div><div class="ct">Min Experience %</div><div class="cd">The experience relevance score — how well the candidate's years of experience align with the seniority level of the position. 50%+ is a reasonable baseline.</div></div></div>
+        <div class="cer"><i class="bi bi-briefcase-fill ci" style="color:#f59e0b;"></i><div><div class="ct">Position Filter</div><div class="cd">Optional — only consider candidates who applied for a position containing this text. Leave blank to apply across all roles.</div></div></div>
+        <div class="cer"><i class="bi bi-shield-check ci" style="color:#8b5cf6;"></i><div><div class="ct">What Happens After</div><div class="cd">Moved candidates appear in Shortlisted. You can still review each one, move them back to Pending, or progress to Interviewing. Auto-shortlist never rejects — it only promotes.</div></div></div>
+        <div style="background:#f0f7ff;border-left:4px solid #3b82f6;border-radius:6px;padding:12px 14px;margin-top:14px;font-size:.85rem;color:#1e3a8a;"><i class="bi bi-lightbulb-fill"></i> <strong>Tip:</strong> Start with Match % at 60% and adjust based on how many candidates you have and how competitive the role is.</div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let allCandidates = [];
-    let currentFilter = 'all';
+'use strict';
+let allCandidates=[];let bulkFiles=[];
+async function loadStats(){try{const r=await fetch('/api/recruiter/stats',{credentials:'include'});const d=await r.json();if(!d.success)return;const s=d.stats;document.getElementById('totalCandidates').textContent=s.total_candidates||0;document.getElementById('pendingCount').textContent=s.pending||0;document.getElementById('shortlistedCount').textContent=s.shortlisted||0;document.getElementById('interviewingCount').textContent=s.interviewing||0;document.getElementById('hiredCount').textContent=s.hired||0;document.getElementById('avgMatch').textContent=(s.avg_match_percentage?Math.round(s.avg_match_percentage):0)+'%';}catch(e){console.error(e);}}
+async function loadCandidates(){try{const r=await fetch('/api/recruiter/candidates',{credentials:'include'});const d=await r.json();if(d.success){allCandidates=d.candidates;buildPipeline(allCandidates);}}catch(e){console.error(e);}}
+function buildPipeline(candidates){const cols={pending:[],shortlisted:[],interviewing:[],hired:[],rejected:[]};candidates.forEach(c=>{const k=c.status in cols?c.status:'pending';cols[k].push(c);});Object.entries(cols).forEach(([s,list])=>{const el=document.getElementById('col-'+s);const ct=document.getElementById('col-count-'+s);if(!el)return;ct.textContent=list.length;if(!list.length){el.innerHTML='<div class="pipeline-empty"><i class="bi bi-inbox" style="font-size:1.4rem;display:block;margin-bottom:4px;"></i>Empty</div>';return;}el.innerHTML=list.map(c=>buildCard(c,s)).join('');});}
+function buildCard(c,status){const m=c.match_percentage||0;const exp=c.experience_relevance_score||0;const col=m>=70?'#10b981':m>=50?'#f59e0b':'#ef4444';const am={pending:'<button class="pc-btn pc-btn-shortlist" onclick="mv('+c.id+',\'shortlisted\',event)"><i class="bi bi-star"></i> Shortlist</button><button class="pc-btn pc-btn-reject" onclick="mv('+c.id+',\'rejected\',event)"><i class="bi bi-x"></i> Reject</button>',shortlisted:'<button class="pc-btn pc-btn-interview" onclick="mv('+c.id+',\'interviewing\',event)"><i class="bi bi-chat-dots"></i> Interview</button><button class="pc-btn pc-btn-reject" onclick="mv('+c.id+',\'rejected\',event)"><i class="bi bi-x"></i> Reject</button>',interviewing:'<button class="pc-btn pc-btn-hire" onclick="mv('+c.id+',\'hired\',event)"><i class="bi bi-check-circle"></i> Hire</button><button class="pc-btn pc-btn-reject" onclick="mv('+c.id+',\'rejected\',event)"><i class="bi bi-x"></i> Reject</button>',hired:'',rejected:'<button class="pc-btn pc-btn-shortlist" onclick="mv('+c.id+',\'pending\',event)"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>'};return '<div class="pipeline-card" onclick="viewCandidate('+c.id+')"><div class="pc-name">'+c.name+'</div><div class="pc-role">'+c.position_applied+'</div><div class="pc-score"><span class="score-pill" style="background:'+col+';">'+m+'%</span><span style="color:#9ca3af;">match &middot; '+exp+'% exp</span></div><div class="pc-actions" onclick="event.stopPropagation()"><button class="pc-btn pc-btn-view" onclick="viewCandidate('+c.id+')"><i class="bi bi-eye"></i> View</button>'+(am[status]||'')+'</div></div>';}
+async function mv(id,status,event){if(event)event.stopPropagation();try{const r=await fetch('/api/recruiter/candidates/'+id+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({status})});if((await r.json()).success){loadCandidates();loadStats();}}catch(e){console.error(e);}}
+function viewCandidate(id){window.location.href='/candidate-analysis.html?id='+id;}
+async function runAutoShortlist(){const mm=parseInt(document.getElementById('minMatch').value);const me=parseInt(document.getElementById('minExp').value);const pos=document.getElementById('filterPosition').value.trim().toLowerCase();const el=allCandidates.filter(c=>{if(c.status!=='pending')return false;if((c.match_percentage||0)<mm)return false;if((c.experience_relevance_score||0)<me)return false;if(pos&&!c.position_applied?.toLowerCase().includes(pos))return false;return true;});if(!el.length){alert('No pending candidates meet the current criteria.');return;}if(!confirm('Auto-shortlist '+el.length+' candidate'+(el.length!==1?'s':'')+' who meet:\n- Match >= '+mm+'%\n- Experience >= '+me+'%'+(pos?'\n- Position: "'+pos+'"':'')+'\n\nContinue?'))return;let moved=0;for(const c of el){try{const r=await fetch('/api/recruiter/candidates/'+c.id+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({status:'shortlisted'})});if((await r.json()).success)moved++;}catch(e){console.error(e);}}await loadCandidates();await loadStats();alert(moved+' candidate'+(moved!==1?'s':'')+' moved to Shortlisted.');}
+function showShortlistInfo(){document.getElementById('shortlistInfoBackdrop').classList.add('show');}
+function hideShortlistInfo(){document.getElementById('shortlistInfoBackdrop').classList.remove('show');}
+function showToast(id,type,html){const el=document.getElementById(id);el.className='upload-result-toast '+type;el.innerHTML=html;el.style.display='block';setTimeout(()=>{el.style.display='none';},8000);}
 
-    // Load stats
-    async function loadStats() {
-        try {
-            const response = await fetch('/api/recruiter/stats', { credentials: 'include' });
-            const result = await response.json();
+// Single upload
+document.getElementById('uploadForm').addEventListener('submit',async e=>{e.preventDefault();const btn=document.getElementById('uploadBtn');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split spin"></i> Analysing…';const fd=new FormData();fd.append('cvFile',document.getElementById('cvFile').files[0]);fd.append('candidateName',document.getElementById('candidateName').value);fd.append('jobTitle',document.getElementById('jobTitle').value);fd.append('email',document.getElementById('email').value);fd.append('phone',document.getElementById('phone').value);try{const r=await fetch('/api/recruiter/candidates/upload',{method:'POST',body:fd,credentials:'include'});const d=await r.json();if(d.success){const a=d.analysis;const col=a.matchPercentage>=70?'#065f46':a.matchPercentage>=50?'#92400e':'#991b1b';showToast('quickUploadResult','success','<strong><i class="bi bi-check-circle-fill"></i> Analysis Complete</strong><br><span style="color:'+col+'">Match: <strong>'+a.matchPercentage+'%</strong></span> &nbsp;·&nbsp; Experience: <strong>'+(a.experienceRelevanceScore||'--')+'%</strong><br><em>'+a.hiringRecommendation+'</em><br><a href="/candidate-analysis.html?id='+d.candidateId+'" style="font-weight:700;color:#1e3a8a;">View Full Analysis <i class="bi bi-arrow-right"></i></a>');document.getElementById('uploadForm').reset();loadCandidates();loadStats();}else{showToast('quickUploadResult','error','<i class="bi bi-exclamation-triangle-fill"></i> <strong>Error:</strong> '+d.error);}}catch(err){showToast('quickUploadResult','error','<strong>Upload failed:</strong> '+err.message);}finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-cloud-upload"></i> Analyse Candidate CV';}});
 
-            if (result.success) {
-                const stats = result.stats;
-                document.getElementById('totalCandidates').textContent = stats.total_candidates || 0;
-                document.getElementById('pendingCount').textContent = stats.pending || 0;
-                document.getElementById('shortlistedCount').textContent = stats.shortlisted || 0;
-                document.getElementById('hiredCount').textContent = stats.hired || 0;
-                
-                const avgMatch = stats.avg_match_percentage ? Math.round(stats.avg_match_percentage) : 0;
-                document.getElementById('avgMatch').textContent = avgMatch + '%';
-            }
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
-    }
+// Bulk upload
+const bdz=document.getElementById('bulkDropZone');const bfi=document.getElementById('bulkFileInput');
+bdz.addEventListener('click',()=>bfi.click());
+bdz.addEventListener('dragover',e=>{e.preventDefault();bdz.classList.add('dragover');});
+bdz.addEventListener('dragleave',()=>bdz.classList.remove('dragover'));
+bdz.addEventListener('drop',e=>{e.preventDefault();bdz.classList.remove('dragover');addBulkFiles(e.dataTransfer.files);});
+bfi.addEventListener('change',e=>addBulkFiles(e.target.files));
 
-    // Load candidates
-    async function loadCandidates(status = null) {
-        try {
-            const url = status ? `/api/recruiter/candidates?status=${status}` : '/api/recruiter/candidates';
-            const response = await fetch(url, { credentials: 'include' });
-            const result = await response.json();
+document.querySelectorAll('input[name="bulkJdMode"]').forEach(r=>r.addEventListener('change',e=>{
+    document.getElementById('bulkSharedJdText').style.display=e.target.value==='text'?'block':'none';
+    document.getElementById('bulkSharedJdFile').style.display=e.target.value==='file'?'block':'none';
+}));
 
-            if (result.success) {
-                allCandidates = result.candidates;
-                displayCandidates(allCandidates);
-            }
-        } catch (error) {
-            console.error('Error loading candidates:', error);
-        }
-    }
-
-    // Display candidates
-    function displayCandidates(candidates) {
-        const grid = document.getElementById('candidatesGrid');
-
-        if (candidates.length === 0) {
-            grid.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    <p>No candidates found. Upload your first candidate CV above!</p>
+function addBulkFiles(fl){
+    Array.from(fl).forEach(f=>{
+        const ext=f.name.split('.').pop().toLowerCase();
+        if(!['pdf','doc','docx'].includes(ext))return;
+        if(f.size>5*1024*1024)return;
+        if(bulkFiles.find(x=>x.file.name===f.name&&x.file.size===f.size))return;
+        const defaultName=f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+        bulkFiles.push({file:f,status:'pending',candidateName:defaultName,jdOverride:''});
+    });
+    renderBulkList();
+}
+function removeBulkFile(i){bulkFiles.splice(i,1);renderBulkList();}
+function updateBulkField(i,field,value){if(bulkFiles[i])bulkFiles[i][field]=value;}
+function renderBulkList(){
+    const list=document.getElementById('bulkFileList');
+    const btn=document.getElementById('bulkStartBtn');
+    if(!bulkFiles.length){list.innerHTML='';btn.disabled=true;return;}
+    const icons={pending:'<i class="bi bi-clock" style="color:#9ca3af;"></i>',running:'<i class="bi bi-hourglass-split spin" style="color:#3b82f6;"></i>',done:'<i class="bi bi-check-circle-fill" style="color:#10b981;"></i>',error:'<i class="bi bi-x-circle-fill" style="color:#ef4444;"></i>'};
+    list.innerHTML=bulkFiles.map((f,i)=>{
+        const isPending=f.status==='pending';
+        return `<li class="bulk-file-row">
+            <div class="bulk-file-row-top">
+                <i class="bi bi-file-earmark-text" style="color:#6BA3D5;flex-shrink:0;font-size:1.1rem;"></i>
+                <span class="bfr-name" style="flex:1;">${f.file.name}</span>
+                <span class="bfr-size">${Math.round(f.file.size/1024)} KB</span>
+                ${icons[f.status]||''}
+                ${isPending?`<button class="bfr-remove" onclick="removeBulkFile(${i})" title="Remove"><i class="bi bi-x"></i></button>`:''}
+            </div>
+            ${isPending?`<div class="bulk-file-row-fields">
+                <div>
+                    <span class="bulk-row-label">Candidate Name</span>
+                    <input class="bulk-row-input" type="text" value="${f.candidateName}"
+                        oninput="updateBulkField(${i},'candidateName',this.value)"
+                        placeholder="Candidate name">
                 </div>
-            `;
-            return;
-        }
-
-        grid.innerHTML = candidates.map(c => {
-            const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-            const matchPercent = c.match_percentage || 0;
-            const relevancePercent = c.experience_relevance_score || 0;
-
-            return `
-                <div class="candidate-card" onclick="viewCandidate(${c.id})">
-                    <span class="status-badge ${c.status}">${c.status}</span>
-                    
-                    <div class="card-header">
-                        <div class="candidate-avatar">${initials}</div>
-                        <div class="candidate-info">
-                            <h3>${c.name}</h3>
-                            <p class="position">${c.position_applied}</p>
-                        </div>
-                    </div>
-
-                    <div class="match-score">
-                        <div class="match-item">
-                            <div class="label">Match</div>
-                            <div class="value">${matchPercent}%</div>
-                        </div>
-                        <div class="match-item">
-                            <div class="label">Experience</div>
-                            <div class="value">${relevancePercent}%</div>
-                        </div>
-                    </div>
-
-                    <div class="match-bar">
-                        <div class="match-bar-fill" style="width: ${matchPercent}%"></div>
-                    </div>
-
-                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
-                        <i class="bi bi-calendar"></i> Uploaded: ${new Date(c.uploaded_at).toLocaleDateString()}
-                    </div>
-
-                    <div class="card-footer">
-                        <button class="card-btn btn-view" onclick="event.stopPropagation(); viewCandidate(${c.id})">
-                            <i class="bi bi-eye"></i> View
-                        </button>
-                        ${c.status === 'pending' ? `
-                            <button class="card-btn btn-shortlist" onclick="event.stopPropagation(); updateStatus(${c.id}, 'shortlisted')">
-                                <i class="bi bi-star"></i> Shortlist
-                            </button>
-                            <button class="card-btn btn-reject" onclick="event.stopPropagation(); updateStatus(${c.id}, 'rejected')">
-                                <i class="bi bi-x"></i> Reject
-                            </button>
-                        ` : ''}
-                    </div>
+                <div>
+                    <span class="bulk-row-label">Job Description Override <span style="font-weight:400;color:#9ca3af;">(optional)</span></span>
+                    <input class="bulk-row-input" type="text" value="${f.jdOverride}"
+                        oninput="updateBulkField(${i},'jdOverride',this.value)"
+                        placeholder="Leave blank to use shared JD">
                 </div>
-            `;
-        }).join('');
+            </div>`:''}
+        </li>`;
+    }).join('');
+    btn.disabled=!bulkFiles.some(f=>f.status==='pending');
+}
+async function startBulkUpload(){
+    const jt=document.getElementById('bulkJobTitle').value.trim();
+    if(!jt){alert('Please enter the position applied for.');return;}
+    const jdMode=document.querySelector('input[name="bulkJdMode"]:checked').value;
+    let sharedJdText='';let sharedJdFile=null;
+    if(jdMode==='text')sharedJdText=document.getElementById('bulkSharedJdContent').value.trim();
+    else if(jdMode==='file')sharedJdFile=document.getElementById('bulkSharedJdFileInput').files[0]||null;
+    const btn=document.getElementById('bulkStartBtn');const pw=document.getElementById('bulkProgressWrap');const fill=document.getElementById('bulkProgressFill');const lbl=document.getElementById('bulkProgressLabel');
+    btn.disabled=true;pw.style.display='block';
+    const pending=bulkFiles.filter(f=>f.status==='pending');let done=0,failed=0;
+    for(let i=0;i<bulkFiles.length;i++){
+        const entry=bulkFiles[i];if(entry.status!=='pending')continue;
+        entry.status='running';renderBulkList();
+        lbl.textContent='Analysing '+(done+failed+1)+' of '+pending.length+'…';
+        try{
+            const fd=new FormData();
+            fd.append('cvFile',entry.file);
+            fd.append('candidateName',entry.candidateName||entry.file.name.replace(/\.[^.]+$/,''));
+            fd.append('jobTitle',jt);
+            if(entry.jdOverride&&entry.jdOverride.trim())fd.append('jobDescription',entry.jdOverride.trim());
+            else if(sharedJdText)fd.append('jobDescription',sharedJdText);
+            else if(sharedJdFile)fd.append('jobDescriptionFile',sharedJdFile);
+            const r=await fetch('/api/recruiter/candidates/upload',{method:'POST',body:fd,credentials:'include'});
+            const d=await r.json();
+            if(d.success){entry.status='done';done++;}else{entry.status='error';failed++;}
+        }catch(e){entry.status='error';failed++;}
+        fill.style.width=Math.round(((done+failed)/pending.length)*100)+'%';renderBulkList();
     }
+    lbl.textContent='Complete — '+done+' analysed'+(failed?' · '+failed+' failed':'');
+    btn.innerHTML='<i class="bi bi-check-circle"></i> Done';
+    await loadCandidates();await loadStats();
+    showToast('bulkUploadResult',done>0?'success':'error','<i class="bi bi-'+(done>0?'check-circle-fill':'exclamation-triangle-fill')+'"></i> <strong>Bulk upload complete:</strong> '+done+' CV'+(done!==1?'s':'')+' analysed'+(failed?' &nbsp;&middot;&nbsp; '+failed+' failed':'')+'.') ;
+    setTimeout(()=>{bulkFiles=bulkFiles.filter(f=>f.status!=='done');renderBulkList();btn.innerHTML='<i class="bi bi-play-circle"></i> Start Bulk Analysis';pw.style.display='none';fill.style.width='0%';},3000);
+}
+// JD radio toggle
+document.querySelectorAll('input[name="jdOption"]').forEach(r=>r.addEventListener('change',e=>{document.getElementById('jdTextArea').style.display=e.target.value==='text'?'block':'none';document.getElementById('jdFileArea').style.display=e.target.value==='file'?'block':'none';}));
 
-    // View candidate
-    function viewCandidate(candidateId) {
-        window.location.href = `/candidate-analysis.html?id=${candidateId}`;
-    }
+// Detailed upload
+document.getElementById('detailedUploadForm').addEventListener('submit',async e=>{e.preventDefault();const btn=document.getElementById('detailedUploadBtn');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split spin"></i> Analysing…';const jdo=document.querySelector('input[name="jdOption"]:checked').value;const fd=new FormData();fd.append('cvFile',document.getElementById('cvFileDetailed').files[0]);fd.append('candidateName',document.getElementById('candidateNameDetailed').value);fd.append('jobTitle',document.getElementById('jobTitleDetailed').value);fd.append('email',document.getElementById('emailDetailed').value);fd.append('phone',document.getElementById('phoneDetailed').value);if(jdo==='text'){const t=document.getElementById('jobDescriptionText').value;if(!t.trim()){alert('Please paste a job description.');btn.disabled=false;btn.innerHTML='<i class="bi bi-rocket"></i> Analyse with Job Description';return;}fd.append('jobDescription',t);}else{const f=document.getElementById('jobDescriptionFile').files[0];if(!f){alert('Please upload a job description file.');btn.disabled=false;btn.innerHTML='<i class="bi bi-rocket"></i> Analyse with Job Description';return;}fd.append('jobDescriptionFile',f);}try{const r=await fetch('/api/recruiter/candidates/upload',{method:'POST',body:fd,credentials:'include'});const d=await r.json();if(d.success){const a=d.analysis;const col=a.matchPercentage>=70?'#065f46':a.matchPercentage>=50?'#92400e':'#991b1b';showToast('detailedUploadResult','success','<strong><i class="bi bi-check-circle-fill"></i> Analysis Complete</strong><br><span style="color:'+col+'">Match: <strong>'+a.matchPercentage+'%</strong></span> &nbsp;·&nbsp; Experience: <strong>'+(a.experienceRelevanceScore||'--')+'%</strong><br><em>'+a.hiringRecommendation+'</em><br><a href="/candidate-analysis.html?id='+d.candidateId+'" style="font-weight:700;color:#1e3a8a;">View Full Analysis <i class="bi bi-arrow-right"></i></a>');document.getElementById('detailedUploadForm').reset();loadCandidates();loadStats();document.getElementById('upload-tab').click();}else{showToast('detailedUploadResult','error','<strong>Error:</strong> '+d.error);}}catch(err){showToast('detailedUploadResult','error','<strong>Upload failed:</strong> '+err.message);}finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-rocket"></i> Analyse with Job Description';}});
 
-    // Update status
-    async function updateStatus(candidateId, status) {
-        if (!confirm(`Change status to ${status}?`)) return;
-
-        try {
-            const response = await fetch(`/api/recruiter/candidates/${candidateId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ status })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                loadCandidates();
-                loadStats();
-            } else {
-                alert('Failed to update status');
-            }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Error updating candidate status');
-        }
-    }
-
-    // Upload candidate CV (Quick)
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('uploadBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Analysing...';
-
-        const formData = new FormData();
-        formData.append('cvFile', document.getElementById('cvFile').files[0]);
-        formData.append('candidateName', document.getElementById('candidateName').value);
-        formData.append('jobTitle', document.getElementById('jobTitle').value);
-        formData.append('email', document.getElementById('email').value);
-        formData.append('phone', document.getElementById('phone').value);
-
-        try {
-            const response = await fetch('/api/recruiter/candidates/upload', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                alert(`✅ Analysis Complete!\n\nMatch: ${data.analysis.matchPercentage}%\nRecommendation: ${data.analysis.hiringRecommendation}`);
-                document.getElementById('uploadForm').reset();
-                loadCandidates();
-                loadStats();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error uploading candidate CV');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cloud-upload"></i> Analyse Candidate CV';
-        }
-    });
-
-    // Job Description Option Toggle
-    document.querySelectorAll('input[name="jdOption"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            document.querySelectorAll('.jd-option').forEach(opt => opt.style.display = 'none');
-            
-            if (e.target.value === 'text') {
-                document.getElementById('jdTextArea').style.display = 'block';
-            } else if (e.target.value === 'file') {
-                document.getElementById('jdFileArea').style.display = 'block';
-            }
-        });
-    });
-
-    // Detailed Upload with Job Description
-    document.getElementById('detailedUploadForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('detailedUploadBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Analysing with Job Description...';
-
-        const formData = new FormData();
-        formData.append('cvFile', document.getElementById('cvFileDetailed').files[0]);
-        formData.append('candidateName', document.getElementById('candidateNameDetailed').value);
-        formData.append('jobTitle', document.getElementById('jobTitleDetailed').value);
-        formData.append('email', document.getElementById('emailDetailed').value);
-        formData.append('phone', document.getElementById('phoneDetailed').value);
-
-        // Add job description based on selection
-        const jdOption = document.querySelector('input[name="jdOption"]:checked').value;
-        
-        if (jdOption === 'text') {
-            const jdText = document.getElementById('jobDescriptionText').value;
-            if (jdText.trim()) {
-                formData.append('jobDescription', jdText);
-            } else {
-                alert('Please paste the job description text');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
-                return;
-            }
-        } else if (jdOption === 'file') {
-            const jdFile = document.getElementById('jobDescriptionFile').files[0];
-            if (jdFile) {
-                formData.append('jobDescriptionFile', jdFile);
-            } else {
-                alert('Please upload a job description file');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
-                return;
-            }
-        }
-
-        try {
-            const response = await fetch('/api/recruiter/candidates/upload', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                alert(`✅ Detailed Analysis Complete!\n\nMatch: ${data.analysis.matchPercentage}%\nExperience: ${data.analysis.experienceRelevanceScore}%\n\n${data.analysis.hiringRecommendation}`);
-                document.getElementById('detailedUploadForm').reset();
-                loadCandidates();
-                loadStats();
-                
-                // Switch back to first tab
-                document.getElementById('upload-tab').click();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error uploading candidate CV');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-rocket"></i> Analyse with Job Description';
-        }
-    });
-
-    // Filter badges
-    document.querySelectorAll('.filter-badge').forEach(badge => {
-        badge.addEventListener('click', () => {
-            document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
-            badge.classList.add('active');
-            
-            const status = badge.dataset.status;
-            currentFilter = status;
-
-            if (status === 'all') {
-                displayCandidates(allCandidates);
-            } else {
-                const filtered = allCandidates.filter(c => c.status === status);
-                displayCandidates(filtered);
-            }
-        });
-    });
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (confirm('Logout?')) {
-            await fetch('/logout', { method: 'POST' });
-            window.location.href = '/';
-        }
-    });
-
-    // Load on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadStats();
-        loadCandidates();
-    });
+document.getElementById('logoutBtn').addEventListener('click',async e=>{e.preventDefault();if(confirm('Logout?')){await fetch('/logout',{method:'POST'});window.location.href='/';}});
+document.addEventListener('DOMContentLoaded',()=>{loadStats();loadCandidates();});
 </script>
-
 </body>
 </html>

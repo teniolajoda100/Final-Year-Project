@@ -272,13 +272,44 @@ app.get('/profile-data', (req, res) => {
 });
 
 /* ================================
-   DASHBOARD ROUTES
+   DASHBOARD ROUTES (FIXED - SINGLE ROUTE)
    ================================ */
 
 app.get('/dashboard', async (req, res) => {
     if (!req.session.userId) {
-        return res.redirect('/signup');
+        return res.redirect('/login');
     }
+
+    const role = req.session.role || 'student';
+
+    // Recruiters always go to recruiter dashboard
+    if (role === 'recruiter') {
+        return res.sendFile(path.join(__dirname, 'dashboard-recruiter.html'));
+    }
+
+    // Working professionals always go to professional dashboard
+    if (role === 'professional') {
+        return res.sendFile(path.join(__dirname, 'dashboard-professional.html'));
+    }
+
+    // Students/graduates - check for CV analysis
+    try {
+        const result = await pool.query(
+            'SELECT id FROM cv_analyses WHERE user_id = $1 ORDER BY analyzed_at DESC LIMIT 1',
+            [req.session.userId]
+        );
+
+        if (result.rows.length > 0) {
+            return res.sendFile(path.join(__dirname, 'dashboard.html'));
+        } else {
+            return res.redirect('/upload');
+        }
+    } catch (err) {
+        console.error('Error checking CV:', err);
+        return res.redirect('/upload');
+    }
+});
+
 app.get('/candidate-analysis.html', (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/signup');
@@ -287,25 +318,6 @@ app.get('/candidate-analysis.html', (req, res) => {
         return res.redirect('/dashboard');
     }
     res.sendFile(path.join(__dirname, 'candidate-analysis.html'));
-});
-    // Redirect based on role
-    if (req.session.role === 'recruiter') {
-        return res.sendFile(path.join(__dirname, 'dashboard-recruiter.html'));
-    }
-
-    // For regular users, check if they have CV analysis
-    try {
-        const result = await getLatestCVAnalysis(req.session.userId);
-        
-        if (result.success && result.hasAnalysis) {
-            res.sendFile(path.join(__dirname, 'dashboard.html'));
-        } else {
-            res.redirect('/upload');
-        }
-    } catch (error) {
-        console.error('Error checking CV status:', error);
-        res.redirect('/upload');
-    }
 });
 
 app.get('/upload', (req, res) => {
@@ -601,13 +613,20 @@ app.post('/api/compare-with-job', async (req, res) => {
    OTHER ROUTES
    ================================ */
 
+
 app.get('/results', (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/signup');
     }
+    
+    // Route based on role
+    if (req.session.role === 'professional') {
+        return res.sendFile(path.join(__dirname, 'results-professional.html'));
+    }
+    
+    // Default student/graduate results
     res.sendFile(path.join(__dirname, 'results.html'));
 });
-
 app.get('/session-info', (req, res) => {
     if (req.session.userId) {
         return res.json({
@@ -628,8 +647,9 @@ app.get('/profile', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`✅ CVision running at http://localhost:${PORT}`);
-    console.log(`   User Dashboard: /dashboard`);
-    console.log(`   Recruiter Dashboard: /dashboard (for recruiter role)`);
+    console.log(`   Student Dashboard: /dashboard (student/graduate role)`);
+    console.log(`   Professional Dashboard: /dashboard (professional role)`);
+    console.log(`   Recruiter Dashboard: /dashboard (recruiter role)`);
     console.log(`   API Routes: /api/recruiter/*`);
     if (!process.env.OPENAI_API_KEY) {
         console.log('⚠️  Warning: OPENAI_API_KEY not found');

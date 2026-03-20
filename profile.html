@@ -10,53 +10,234 @@
     <link href="css/styles.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #f4f6f9;
-        }
+        body { background-color: #f4f6f9; }
 
         .profile-wrapper {
-            max-width: 800px;
-            margin: 120px auto 60px;
+            max-width: 860px;
+            margin: 110px auto 60px;
+            padding: 0 16px;
         }
 
+        /* ── Hero card ── */
+        .profile-hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 14px;
+            padding: 36px 36px 80px;
+            color: white;
+            position: relative;
+            margin-bottom: 0;
+            box-shadow: 0 6px 24px rgba(30,58,138,0.25);
+        }
+
+        .profile-hero h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            opacity: 0.85;
+            margin-bottom: 0;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* ── Avatar ring ── */
+        .avatar-wrap {
+            position: absolute;
+            bottom: -52px;
+            left: 36px;
+        }
+        .avatar-ring {
+            width: 104px; height: 104px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            padding: 3px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .avatar-inner {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.6rem; color: #3b82f6;
+        }
+
+        /* ── Main card ── */
         .profile-card {
             background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 2px solid #333;
+            border-radius: 14px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 70px 36px 36px;
+            position: relative;
         }
 
-        .profile-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .profile-name-block {
+            margin-bottom: 28px;
+        }
+        .profile-name-block h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 4px;
         }
 
-        .profile-header i {
-            font-size: 4rem;
-            color: #6BA3D5;
-        }
-
-        .profile-header h2 {
-            margin-top: 10px;
+        /* Role badge */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
             font-weight: 700;
-        }
-
-        .user-type {
-            color: #777;
-            font-size: 0.85rem;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            letter-spacing: 1px;
+        }
+        .role-badge.student     { background: #eff6ff; color: #1e3a8a; }
+        .role-badge.professional{ background: #f0fdf4; color: #065f46; }
+        .role-badge.recruiter   { background: #faf5ff; color: #6b21a8; }
+
+        /* Section divider */
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #9ca3af;
+            margin-bottom: 14px;
+            margin-top: 28px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
+        /* Form fields */
+        .field-group { margin-bottom: 18px; }
+        .field-group label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .field-group input, .field-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 9px;
+            font-size: 0.95rem;
+            color: #1e293b;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            background: #fafafa;
+        }
+        .field-group input:focus, .field-group select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            background: white;
+        }
+        .field-group input[readonly] {
+            background: #f8f9fa;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        /* Stats strip */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-tile {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            border: 1.5px solid #e5e7eb;
+        }
+        .stat-tile .st-val {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #3b82f6;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-tile .st-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Quick links */
+        .quick-links { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+        .quick-link {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .quick-link.ql-dashboard { background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe; }
+        .quick-link.ql-dashboard:hover { background: #1e3a8a; color: white; }
+        .quick-link.ql-upload    { background: #f0fdf4; color: #065f46; border-color: #bbf7d0; }
+        .quick-link.ql-upload:hover { background: #10b981; color: white; }
+        .quick-link.ql-results   { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+        .quick-link.ql-results:hover { background: #8b5cf6; color: white; }
+
+        /* Action buttons */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1.5px solid #f1f5f9;
+        }
         .btn-save {
-            background-color: #6BA3D5;
-            color: white;
+            flex: 1;
+            padding: 13px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white; border: none; border-radius: 9px;
+            font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.25s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 14px rgba(30,58,138,0.3); }
+
+        .btn-logout {
+            padding: 13px 22px;
+            background: white; color: #ef4444;
+            border: 2px solid #fecaca; border-radius: 9px;
+            font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-logout:hover { background: #fee2e2; border-color: #ef4444; }
+
+        /* Save feedback */
+        .save-feedback {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
             font-weight: 600;
         }
+        .save-feedback.success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .save-feedback.error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
 
-        .btn-save:hover {
-            background-color: #5a92c6;
+        @media (max-width: 600px) {
+            .profile-hero   { padding: 28px 20px 72px; }
+            .profile-card   { padding: 68px 20px 28px; }
+            .avatar-wrap    { left: 20px; }
+            .form-row       { grid-template-columns: 1fr; }
+            .stats-strip    { grid-template-columns: 1fr 1fr; }
+            .action-row     { flex-direction: column; }
+            .btn-logout     { justify-content: center; }
         }
     </style>
 </head>
@@ -66,112 +247,247 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="/">
-            <img src="assets/logo.png" alt="CVision Logo">
-        </a>
-
+        <a class="navbar-brand" href="/"><img src="assets/logo.png" alt="CVision Logo"></a>
         <ul class="navbar-nav ms-auto align-items-center">
-            <li class="nav-item ms-3">
-                <a href="/results" class="nav-link fs-4 text-white">
-                    <i class="bi bi-arrow-left"></i>
+            <li class="nav-item">
+                <a class="nav-link" href="/dashboard">
+                    <i class="bi bi-arrow-left"></i> Back
                 </a>
             </li>
         </ul>
     </div>
 </nav>
 
-<!-- PROFILE -->
 <div class="profile-wrapper">
+
+    <!-- Hero -->
+    <div class="profile-hero">
+        <h1><i class="bi bi-person-badge"></i> My Profile</h1>
+        <div class="avatar-wrap">
+            <div class="avatar-ring">
+                <div class="avatar-inner">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main card -->
     <div class="profile-card">
 
-        <div class="profile-header">
-            <i class="bi bi-person-circle"></i>
-            <h2 id="userName">User Name</h2>
-            <div class="user-type" id="userType">Student / Graduate</div>
+        <!-- Name + role -->
+        <div class="profile-name-block">
+            <h2 id="displayName">Loading…</h2>
+            <div id="roleBadge" class="role-badge student">
+                <i class="bi bi-mortarboard-fill"></i> <span id="roleLabel">Student / Graduate</span>
+            </div>
         </div>
 
+        <!-- Quick links (shown after load) -->
+        <div class="quick-links" id="quickLinks" style="display:none;"></div>
+
+        <!-- Activity stats (shown after load) -->
+        <div class="stats-strip" id="statsStrip" style="display:none;">
+            <div class="stat-tile"><div class="st-val" id="statAnalyses">--</div><div class="st-label">CV Analyses</div></div>
+            <div class="stat-tile"><div class="st-val" id="statJobComp">--</div><div class="st-label">Job Comparisons</div></div>
+            <div class="stat-tile"><div class="st-val" id="statMember">--</div><div class="st-label">Member Since</div></div>
+        </div>
+
+        <!-- Personal details section -->
+        <div class="section-label">Personal Details</div>
+
         <form id="profileForm">
-            <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="nameInput" required>
+            <div class="form-row">
+                <div class="field-group">
+                    <label><i class="bi bi-person"></i> Full Name</label>
+                    <input type="text" id="nameInput" required placeholder="Your full name">
+                </div>
+                <div class="field-group">
+                    <label><i class="bi bi-envelope"></i> Email Address</label>
+                    <input type="email" id="emailInput" required placeholder="your@email.com">
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" id="emailInput" required>
+            <div class="form-row">
+                <div class="field-group">
+                    <label><i class="bi bi-briefcase"></i> Account Type</label>
+                    <select id="typeInput">
+                        <option value="student">Student / Graduate</option>
+                        <option value="professional">Working Professional</option>
+                        <option value="recruiter">Recruiter / HR</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label><i class="bi bi-shield-lock"></i> Password</label>
+                    <input type="text" value="••••••••••" readonly title="Password changes not supported in this version">
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">User Type</label>
-                <select class="form-select" id="typeInput">
-                    <option value="Student / Graduate">Student / Graduate</option>
-                    <option value="Working Professional">Working Professional</option>
-                    <option value="HR Manager">HR Manager</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div class="d-flex justify-content-between mt-4">
-                <button type="submit" class="btn btn-save">
-                    Save Changes
+            <div class="action-row">
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-floppy"></i> Save Changes
                 </button>
-
-                <button type="button" id="logoutBtn" class="btn btn-outline-danger">
-                    Logout
+                <button type="button" id="logoutBtn" class="btn-logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
             </div>
         </form>
+
+        <div class="save-feedback" id="saveFeedback"></div>
 
     </div>
 </div>
 
 <script>
-    // Load profile data
+    const ROLE_CONFIG = {
+        student:      { label: 'Student / Graduate', icon: 'bi-mortarboard-fill', cls: 'student',
+                        links: [
+                            { href: '/dashboard', cls: 'ql-dashboard', icon: 'bi-grid-1x2-fill', text: 'Dashboard' },
+                            { href: '/upload',    cls: 'ql-upload',    icon: 'bi-cloud-upload',  text: 'Upload CV' },
+                            { href: '/results',   cls: 'ql-results',   icon: 'bi-file-earmark-bar-graph', text: 'My Results' }
+                        ]},
+        professional: { label: 'Working Professional', icon: 'bi-briefcase-fill', cls: 'professional',
+                        links: [
+                            { href: '/dashboard', cls: 'ql-dashboard', icon: 'bi-grid-1x2-fill', text: 'Dashboard' },
+                            { href: '/upload',    cls: 'ql-upload',    icon: 'bi-cloud-upload',  text: 'Upload CV' },
+                            { href: '/results',   cls: 'ql-results',   icon: 'bi-file-earmark-bar-graph', text: 'My Results' }
+                        ]},
+        recruiter:    { label: 'Recruiter / HR', icon: 'bi-people-fill', cls: 'recruiter',
+                        links: [
+                            { href: '/dashboard', cls: 'ql-dashboard', icon: 'bi-grid-1x2-fill', text: 'Dashboard' }
+                        ]}
+    };
+
+    function applyRoleUI(role) {
+        const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.student;
+
+        // Badge
+        const badge = document.getElementById('roleBadge');
+        badge.className = `role-badge ${cfg.cls}`;
+        badge.innerHTML = `<i class="bi ${cfg.icon}"></i> <span>${cfg.label}</span>`;
+
+        // Quick links
+        const ql = document.getElementById('quickLinks');
+        ql.innerHTML = cfg.links.map(l =>
+            `<a href="${l.href}" class="quick-link ${l.cls}">
+                <i class="bi ${l.icon}"></i> ${l.text}
+            </a>`
+        ).join('');
+        ql.style.display = 'flex';
+    }
+
+    // Load profile
     fetch('/profile-data', { credentials: 'include' })
-        .then(res => {
-            if (!res.ok) throw new Error('Not logged in');
-            return res.json();
-        })
+        .then(res => { if (!res.ok) throw new Error('Not logged in'); return res.json(); })
         .then(user => {
-            document.getElementById('userName').textContent = user.fullName;
-            document.getElementById('userType').textContent = user.role;
-            document.getElementById('nameInput').value = user.fullName;
-            document.getElementById('emailInput').value = user.email;
-            document.getElementById('typeInput').value = user.role;
+            document.getElementById('displayName').textContent = user.fullName || 'User';
+            document.getElementById('nameInput').value  = user.fullName || '';
+            document.getElementById('emailInput').value = user.email    || '';
+            document.getElementById('typeInput').value  = user.role     || 'student';
+
+            applyRoleUI(user.role);
+
+            // Load activity stats
+            loadActivityStats(user.role);
         })
-        .catch(() => {
-            window.location.href = '/login';
+        .catch(() => { window.location.href = '/login'; });
+
+    async function loadActivityStats(role) {
+        // Always show the strip once profile is loaded
+        document.getElementById('statsStrip').style.display = 'grid';
+
+        if (role === 'recruiter') {
+            // Recruiter stats
+            try {
+                const res  = await fetch('/api/recruiter/stats', { credentials: 'include' });
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.stats;
+                    document.getElementById('statAnalyses').textContent = s.total_candidates || 0;
+                    document.getElementById('statJobComp').textContent  = s.shortlisted || 0;
+                    document.getElementById('statMember').textContent   = 'Active';
+                    document.querySelector('#statsStrip .stat-tile:nth-child(1) .st-label').textContent = 'Candidates';
+                    document.querySelector('#statsStrip .stat-tile:nth-child(2) .st-label').textContent = 'Shortlisted';
+                }
+            } catch(e) { setDefaultStats(); }
+        } else {
+            // Student / professional stats from CV analyses
+            try {
+                const res  = await fetch('/api/cv-analyses-history', { credentials: 'include' });
+                const data = await res.json();
+                if (data.success) {
+                    const analyses = data.analyses || [];
+                    document.getElementById('statAnalyses').textContent = analyses.length;
+
+                    // Try to get job comparison count from latest analysis
+                    const jobCompRes  = await fetch('/api/latest-cv-analysis', { credentials: 'include' });
+                    const jobCompData = await jobCompRes.json();
+                    document.getElementById('statJobComp').textContent = jobCompData.data?.jobComparisons ?? 0;
+
+                    // Member since from first analysis date
+                    if (analyses.length > 0) {
+                        const oldest = analyses[analyses.length - 1];
+                        const d = new Date(oldest.analyzed_at || oldest.analyzedAt);
+                        document.getElementById('statMember').textContent = isNaN(d) ? '--' : d.toLocaleDateString('en-IE', { month:'short', year:'numeric' });
+                    } else {
+                        document.getElementById('statMember').textContent = 'New';
+                    }
+                } else { setDefaultStats(); }
+            } catch(e) { setDefaultStats(); }
+        }
+    }
+
+    function setDefaultStats() {
+        ['statAnalyses','statJobComp','statMember'].forEach(id => {
+            document.getElementById(id).textContent = '--';
         });
+    }
 
     // Save profile
-    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    document.getElementById('profileForm').addEventListener('submit', async e => {
         e.preventDefault();
+        const btn = document.querySelector('.btn-save');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving…';
+        btn.disabled  = true;
 
-        await fetch('/update-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fullName: nameInput.value,
-                email: emailInput.value,
-                role: typeInput.value
-            })
-        });
+        try {
+            await fetch('/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    fullName: document.getElementById('nameInput').value,
+                    email:    document.getElementById('emailInput').value,
+                    role:     document.getElementById('typeInput').value
+                })
+            });
 
-        document.getElementById('userName').textContent = nameInput.value;
-        document.getElementById('userType').textContent = typeInput.value;
+            // Update display
+            document.getElementById('displayName').textContent = document.getElementById('nameInput').value;
+            applyRoleUI(document.getElementById('typeInput').value);
 
-        alert('Profile updated successfully');
+            const fb = document.getElementById('saveFeedback');
+            fb.className   = 'save-feedback success';
+            fb.innerHTML   = '<i class="bi bi-check-circle-fill"></i> Profile updated successfully.';
+            fb.style.display = 'block';
+            setTimeout(() => { fb.style.display = 'none'; }, 4000);
+
+        } catch (err) {
+            const fb = document.getElementById('saveFeedback');
+            fb.className   = 'save-feedback error';
+            fb.innerHTML   = '<i class="bi bi-exclamation-triangle-fill"></i> Could not save changes. Please try again.';
+            fb.style.display = 'block';
+        } finally {
+            btn.innerHTML = '<i class="bi bi-floppy"></i> Save Changes';
+            btn.disabled  = false;
+        }
     });
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-        if (confirm('Logout from CVision?')) {
-            await fetch('/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
+        if (confirm('Are you sure you want to logout?')) {
+            await fetch('/logout', { method: 'POST', credentials: 'include' });
             window.location.href = '/';
-
         }
     });
 </script>

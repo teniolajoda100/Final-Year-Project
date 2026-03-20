@@ -10,9 +10,7 @@
     <link href="css/styles.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #f4f6f9;
-        }
+        body { background-color: #f4f6f9; }
 
         .dashboard-wrapper {
             max-width: 900px;
@@ -22,6 +20,7 @@
             padding: 30px;
         }
 
+        /* ── Upload box ── */
         .upload-box {
             border: 2px dashed #bbb;
             padding: 50px 20px;
@@ -31,21 +30,9 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-
-        .upload-box:hover {
-            background-color: #f0f0f0;
-            border-color: #999;
-        }
-
-        .upload-box.dragover {
-            background-color: #e8f4f8;
-            border-color: #6BA3D5;
-        }
-
-        .upload-box i {
-            font-size: 48px;
-            color: #666;
-        }
+        .upload-box:hover        { background-color: #f0f0f0; border-color: #999; }
+        .upload-box.dragover     { background-color: #e8f4f8; border-color: #6BA3D5; }
+        .upload-box i            { font-size: 48px; color: #666; }
 
         .file-status {
             margin-top: 20px;
@@ -56,15 +43,8 @@
             font-size: 14px;
             display: none;
         }
-
-        .file-status.show {
-            display: block;
-        }
-
-        .file-status.has-file {
-            background: #d4edda;
-            color: #155724;
-        }
+        .file-status.show     { display: block; }
+        .file-status.has-file { background: #d4edda; color: #155724; }
 
         .analyze-btn {
             margin-top: 30px;
@@ -80,20 +60,9 @@
             display: none;
             transition: all 0.3s;
         }
-
-        .analyze-btn.show {
-            display: block;
-        }
-
-        .analyze-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255,87,34,0.3);
-        }
-
-        .analyze-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
+        .analyze-btn.show          { display: block; }
+        .analyze-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,87,34,0.3); }
+        .analyze-btn:disabled      { background: #ccc; cursor: not-allowed; }
 
         .instructions {
             background: #f7f7f7;
@@ -113,9 +82,133 @@
             margin-left: 10px;
             cursor: pointer;
         }
+        .remove-file-btn:hover { background: #c82333; }
 
-        .remove-file-btn:hover {
-            background: #c82333;
+        /* ── Context popup modal ── */
+        .ctx-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
+            animation: ctxFadeIn 0.25s;
+        }
+        .ctx-backdrop.show { display: flex; align-items: center; justify-content: center; }
+
+        .ctx-modal {
+            background: white;
+            border-radius: 14px;
+            padding: 36px 32px 28px;
+            max-width: 520px;
+            width: 92%;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+            animation: ctxSlideUp 0.3s;
+            position: relative;
+        }
+
+        /* Success tick at the top */
+        .ctx-success-badge {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+        }
+        .ctx-success-badge i { font-size: 1.8rem; color: white; }
+
+        .ctx-modal h3 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .ctx-modal .ctx-sub {
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 22px;
+        }
+        .ctx-modal .ctx-sub strong { color: #10b981; }
+
+        /* Form fields */
+        .ctx-field { margin-bottom: 16px; }
+        .ctx-field label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+        .ctx-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .ctx-field input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        .ctx-field input::placeholder { color: #9ca3af; }
+
+        /* Buttons row */
+        .ctx-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .ctx-skip-btn {
+            flex: 1;
+            padding: 13px;
+            background: #f3f4f6;
+            color: #555;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .ctx-skip-btn:hover { background: #e5e7eb; color: #333; }
+
+        .ctx-continue-btn {
+            flex: 2;
+            padding: 13px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .ctx-continue-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 14px rgba(30,58,138,0.3); }
+
+        /* Privacy note */
+        .ctx-privacy {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 14px;
+        }
+        .ctx-privacy i { margin-right: 3px; }
+
+        @keyframes ctxFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes ctxSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -125,10 +218,7 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="/">
-            <img src="assets/logo.png" alt="CVision Logo">
-        </a>
-
+        <a class="navbar-brand" href="/"><img src="assets/logo.png" alt="CVision Logo"></a>
         <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link active" href="/upload">Upload CV</a></li>
@@ -150,15 +240,11 @@
 
     <h2 class="text-center mb-4">CV Upload</h2>
 
-    <!-- Instructions -->
     <div class="instructions">
         <h5>Welcome to CVision</h5>
-        <p class="mb-0">
-            Upload your CV to receive skill analysis, job matches, and interview preparation
-        </p>
+        <p class="mb-0">Upload your CV to receive skill analysis, job matches, and interview preparation</p>
     </div>
 
-    <!-- Upload Area -->
     <div class="upload-box" id="uploadBox">
         <i class="bi bi-cloud-upload"></i>
         <h5 class="mt-3">Drag & Drop CV Here</h5>
@@ -166,76 +252,99 @@
         <input type="file" id="cvInput" hidden accept=".pdf,.doc,.docx">
     </div>
 
-    <!-- File Status -->
-    <div class="file-status" id="fileStatus">
-        No file selected
-    </div>
-
-    <!-- Analyze Button -->
+    <div class="file-status" id="fileStatus">No file selected</div>
     <button class="analyze-btn" id="analyzeBtn">Analyze CV</button>
 
+</div>
+
+<!-- ── Professional Context Popup ── -->
+<div class="ctx-backdrop" id="ctxBackdrop">
+    <div class="ctx-modal">
+
+        <div class="ctx-success-badge">
+            <i class="bi bi-check-lg"></i>
+        </div>
+
+        <h3>CV Analysed Successfully!</h3>
+        <p class="ctx-sub">
+            Before we show your results, tell us a little more so we can give you a
+            <strong>more accurate salary comparison</strong>.
+        </p>
+
+        <div class="ctx-field">
+            <label for="ctxRole">Your Current Job Title <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <input type="text" id="ctxRole" placeholder="e.g. Software Engineer, Data Analyst, Product Manager…" />
+        </div>
+
+        <div class="ctx-field">
+            <label for="ctxSalary">Your Current Salary (€) <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <input type="number" id="ctxSalary" placeholder="e.g. 65000" min="0" step="1000" />
+        </div>
+
+        <div class="ctx-actions">
+            <button class="ctx-skip-btn" onclick="proceedToResults(false)">
+                Skip for now
+            </button>
+            <button class="ctx-continue-btn" onclick="proceedToResults(true)">
+                <i class="bi bi-arrow-right-circle"></i> View My Results
+            </button>
+        </div>
+
+        <p class="ctx-privacy">
+            <i class="bi bi-lock-fill"></i>
+            Your salary is only used locally to personalise your analysis — it is never stored or shared.
+        </p>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let selectedFile = null;
+    let analysedData = null;           // holds the CV analysis result while popup is shown
     const maxFileSize = 5 * 1024 * 1024;
 
-    const uploadBox = document.getElementById('uploadBox');
-    const cvInput = document.getElementById('cvInput');
+    const uploadBox  = document.getElementById('uploadBox');
+    const cvInput    = document.getElementById('cvInput');
     const fileStatus = document.getElementById('fileStatus');
     const analyzeBtn = document.getElementById('analyzeBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtn  = document.getElementById('logoutBtn');
 
-    uploadBox.addEventListener('click', () => {
-        cvInput.click();
-    });
+    /* ── File handling ── */
+    uploadBox.addEventListener('click', () => cvInput.click());
 
-    cvInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
+    cvInput.addEventListener('change', e => handleFiles(e.target.files));
 
-    uploadBox.addEventListener('dragover', (e) => {
+    uploadBox.addEventListener('dragover', e => {
         e.preventDefault();
         uploadBox.classList.add('dragover');
     });
-
-    uploadBox.addEventListener('dragleave', () => {
-        uploadBox.classList.remove('dragover');
-    });
-
-    uploadBox.addEventListener('drop', (e) => {
+    uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragover'));
+    uploadBox.addEventListener('drop', e => {
         e.preventDefault();
         uploadBox.classList.remove('dragover');
         handleFiles(e.dataTransfer.files);
     });
 
     function handleFiles(files) {
-        if (files.length === 0) return;
-
+        if (!files.length) return;
         const file = files[0];
-        
-        const validExtensions = ['.pdf', '.doc', '.docx'];
-        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-        
-        if (!validExtensions.includes(fileExt)) {
+        const ext  = '.' + file.name.split('.').pop().toLowerCase();
+
+        if (!['.pdf', '.doc', '.docx'].includes(ext)) {
             alert('Please upload a PDF or DOCX file');
             return;
         }
-
         if (file.size > maxFileSize) {
             alert('File size must be less than 5MB');
             return;
         }
-
         selectedFile = file;
         displayFileInfo(file);
     }
 
     function displayFileInfo(file) {
-        const fileSize = formatFileSize(file.size);
         fileStatus.innerHTML = `
-            <strong>${file.name}</strong> (${fileSize})
+            <strong>${file.name}</strong> (${formatFileSize(file.size)})
             <button class="remove-file-btn" onclick="removeFile()">Remove</button>
         `;
         fileStatus.classList.add('show', 'has-file');
@@ -250,14 +359,12 @@
         analyzeBtn.classList.remove('show');
     }
 
+    /* ── Analyse CV ── */
     analyzeBtn.addEventListener('click', async () => {
-        if (!selectedFile) {
-            alert('Please select a file first');
-            return;
-        }
+        if (!selectedFile) { alert('Please select a file first'); return; }
 
-        analyzeBtn.disabled = true;
-        analyzeBtn.textContent = 'Analyzing...';
+        analyzeBtn.disabled    = true;
+        analyzeBtn.textContent = 'Analysing…';
 
         const formData = new FormData();
         formData.append('cvFile', selectedFile);
@@ -268,55 +375,68 @@
                 body: formData,
                 credentials: 'include'
             });
-
             const data = await response.json();
 
             if (data.error) {
                 alert('Error: ' + data.error);
-                analyzeBtn.disabled = false;
+                analyzeBtn.disabled    = false;
                 analyzeBtn.textContent = 'Analyze CV';
                 return;
             }
 
-            // IMPORTANT: Store results in sessionStorage for immediate access
-            sessionStorage.setItem('cvResults', JSON.stringify(data));
-            
-            // Redirect to results page
-            window.location.href = '/results';
+            // Hold the result — show popup before redirecting
+            analysedData = data;
+            showContextPopup();
 
         } catch (error) {
-            alert('Error analyzing CV: ' + error.message);
-            analyzeBtn.disabled = false;
+            alert('Error analysing CV: ' + error.message);
+            analyzeBtn.disabled    = false;
             analyzeBtn.textContent = 'Analyze CV';
         }
     });
 
-    logoutBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        if (confirm('Are you sure you want to logout?')) {
-            try {
-                const response = await fetch('/logout', {
-                    method: 'POST'
-                });
+    /* ── Context popup ── */
+    function showContextPopup() {
+        document.getElementById('ctxBackdrop').classList.add('show');
+        // Focus the role field for convenience
+        setTimeout(() => document.getElementById('ctxRole').focus(), 300);
+    }
 
-                if (response.ok) {
-                    window.location.href = '/';
-                } else {
-                    alert('Error logging out');
-                }
-            } catch (error) {
-                console.error('Logout error:', error);
-                alert('Error logging out');
-            }
+    function proceedToResults(useContext) {
+        // Merge user context into the analysis data before storing
+        if (useContext) {
+            const role   = document.getElementById('ctxRole').value.trim();
+            const salary = parseFloat(document.getElementById('ctxSalary').value);
+
+            if (role)          analysedData.userRole   = role;
+            if (!isNaN(salary)) analysedData.userSalary = salary;
+        }
+
+        // Save everything to sessionStorage and navigate
+        sessionStorage.setItem('cvResults', JSON.stringify(analysedData));
+        window.location.href = '/results';
+    }
+
+    // Allow Enter key inside popup inputs to trigger continue
+    document.getElementById('ctxRole')  .addEventListener('keydown', e => { if (e.key === 'Enter') proceedToResults(true); });
+    document.getElementById('ctxSalary').addEventListener('keydown', e => { if (e.key === 'Enter') proceedToResults(true); });
+
+    /* ── Logout ── */
+    logoutBtn.addEventListener('click', async e => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+            const response = await fetch('/logout', { method: 'POST' });
+            if (response.ok) window.location.href = '/';
+            else alert('Error logging out');
         }
     });
 
+    /* ── Utility ── */
     function formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
-        const k = 1024;
+        const k     = 1024;
         const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        const i     = Math.floor(Math.log(bytes) / Math.log(k));
         return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     }
 </script>

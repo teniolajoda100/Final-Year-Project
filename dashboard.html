@@ -11,9 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
     <style>
-        body {
-            background-color: #f4f6f9;
-        }
+        body { background-color: #f4f6f9; }
 
         .dashboard-container {
             max-width: 1400px;
@@ -21,227 +19,230 @@
             padding: 20px;
         }
 
+        /* ── Welcome header ── */
         .welcome-header {
             background: linear-gradient(135deg, #6BA3D5 0%, #89B7DC 100%);
             color: white;
             padding: 30px;
-            border-radius: 8px;
-            margin-bottom: 30px;
+            border-radius: 10px;
+            margin-bottom: 28px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        .welcome-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+        .welcome-header p  { font-size: 1rem; margin: 0; opacity: .92; }
 
-        .welcome-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .welcome-header p {
-            font-size: 1.1rem;
-            margin: 0;
-            opacity: 0.95;
-        }
-
+        /* ── Stats grid ── */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 26px;
         }
 
         .stat-card {
             background: white;
-            padding: 25px;
-            border-radius: 8px;
+            padding: 24px 20px;
+            border-radius: 10px;
             border: 2px solid #e0e0e0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.07);
             text-align: center;
-            transition: all 0.3s;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
         }
-
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.13);
+            border-color: #6BA3D5;
         }
 
-        .stat-card .icon {
-            font-size: 2.5rem;
-            color: #6BA3D5;
-            margin-bottom: 15px;
-        }
-
+        .stat-card .icon { font-size: 2.2rem; color: #6BA3D5; margin-bottom: 12px; }
         .stat-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2C3E50;
-            margin-bottom: 5px;
+            font-size: 2.6rem; font-weight: 800; color: #2C3E50;
+            margin-bottom: 4px; line-height: 1;
         }
-
         .stat-card .label {
-            font-size: 0.95rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 0.88rem; color: #666;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
+        .stat-card .click-hint {
+            position: absolute; bottom: 10px; left: 0; right: 0;
+            font-size: 0.7rem; font-weight: 600; color: #6BA3D5;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .stat-card:hover .click-hint { opacity: 1; }
 
+        /* ── Dashboard sections ── */
         .dashboard-section {
             background: white;
-            padding: 25px;
-            border-radius: 8px;
+            padding: 24px;
+            border-radius: 10px;
             border: 2px solid #e0e0e0;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 22px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.07);
         }
 
         .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px; padding-bottom: 14px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .section-header h2 { font-size: 1.2rem; font-weight: 700; color: #2C3E50; margin: 0; }
+        .section-header .view-all-link { color: #6BA3D5; text-decoration: none; font-weight: 600; font-size: .9rem; }
+        .section-header .view-all-link:hover { color: #FF5722; }
+
+        .chart-container { position: relative; height: 300px; margin-top: 10px; }
+
+        /* ── Skill type section — clickable ── */
+        .skill-type-section {
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .skill-type-section:hover {
+            border-color: #6BA3D5;
+            box-shadow: 0 6px 20px rgba(107,163,213,0.18);
+            transform: translateY(-2px);
+        }
+        .skill-type-hint {
+            font-size: 0.78rem; font-weight: 600; color: #6BA3D5;
+            display: flex; align-items: center; gap: 5px; margin-top: 12px;
         }
 
-        .section-header h2 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2C3E50;
-            margin: 0;
-        }
-
-        .section-header .view-all-link {
-            color: #6BA3D5;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .section-header .view-all-link:hover {
-            color: #FF5722;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-top: 20px;
-        }
-
+        /* ── Top skills ── */
         .top-skills-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
         }
 
         .skill-badge {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border-left: 4px solid #6BA3D5;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 13px 15px; background: #f8f9fa; border-radius: 8px;
+            border-left: 4px solid #6BA3D5; transition: all 0.2s;
         }
+        .skill-badge:hover { transform: translateX(4px); background: #eef3f8; }
+        .skill-badge.high   { border-left-color: #10b981; background: #f0fdf4; }
+        .skill-badge.medium { border-left-color: #f59e0b; background: #fffbeb; }
+        .skill-badge.low    { border-left-color: #ef4444; background: #fef2f2; }
+        .skill-badge.high:hover   { background: #dcfce7; }
+        .skill-badge.medium:hover { background: #fef3c7; }
+        .skill-badge.low:hover    { background: #fee2e2; }
 
-        .skill-badge.high {
-            border-left-color: #4CAF50;
-            background: #f1f8f4;
-        }
+        .skill-badge .skill-name  { font-weight: 700; color: #2C3E50; font-size: .95rem; }
+        .skill-badge .skill-level { font-size: .8rem; color: #888; margin-top: 2px; }
+        .skill-badge .skill-score { font-size: 1.2rem; font-weight: 800; color: #6BA3D5; flex-shrink: 0; }
 
-        .skill-badge.medium {
-            border-left-color: #FF9800;
-            background: #fff8f1;
-        }
-
-        .skill-badge.low {
-            border-left-color: #F44336;
-            background: #fef1f1;
-        }
-
-        .skill-badge .skill-name {
-            font-weight: 600;
-            color: #2C3E50;
-        }
-
-        .skill-badge .skill-score {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #6BA3D5;
-        }
-
-        .skill-badge .skill-level {
-            font-size: 0.85rem;
-            color: #666;
-            font-style: italic;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
+        /* ── Quick actions ── */
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
 
         .action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 15px 20px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 14px 18px;
             background: linear-gradient(135deg, #6BA3D5, #89B7DC);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
+            color: white; text-decoration: none; border-radius: 8px;
+            font-weight: 700; transition: all 0.25s; border: none; cursor: pointer;
+            font-size: .95rem;
         }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(107,163,213,.3); color: white; }
+        .action-btn.secondary { background: linear-gradient(135deg, #FF5722, #FF7043); }
+        .action-btn.secondary:hover { box-shadow: 0 5px 15px rgba(255,87,34,.3); }
 
-        .action-btn:hover {
-            background: linear-gradient(135deg, #5a92c4, #6BA3D5);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(107,163,213,0.3);
-            color: white;
-        }
-
-        .action-btn.secondary {
-            background: linear-gradient(135deg, #FF5722, #FF7043);
-        }
-
-        .action-btn.secondary:hover {
-            background: linear-gradient(135deg, #e64a19, #FF5722);
-        }
-
+        /* ── No analysis state ── */
         .no-analysis-card {
-            text-align: center;
-            padding: 60px 20px;
-            background: #f8f9fa;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
+            text-align: center; padding: 60px 20px;
+            background: #f8f9fa; border: 2px dashed #ccc; border-radius: 10px;
+        }
+        .no-analysis-card i { font-size: 4rem; color: #ccc; margin-bottom: 18px; }
+        .no-analysis-card h3 { color: #666; margin-bottom: 12px; }
+
+        /* ================================================================
+           MODAL SYSTEM — shared with results page styling conventions
+           ================================================================ */
+        .modal-backdrop-dash {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 9998;
+            animation: dbFadeIn .25s;
+        }
+        .modal-backdrop-dash.show { display: block; }
+
+        .dash-modal {
+            display: none; position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white; border-radius: 14px; padding: 28px;
+            max-width: 600px; width: 92%; max-height: 84vh; overflow-y: auto;
+            z-index: 9999; box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+            animation: dbSlideUp .3s;
+        }
+        .dash-modal.show { display: block; }
+
+        .dm-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e8e8e8; gap: 12px;
+        }
+        .dm-top h3 { margin: 0; font-size: 1.3rem; font-weight: 800; color: #2C3E50; line-height: 1.3; }
+        .dm-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #aaa; padding: 0; transition: color .2s; }
+        .dm-close:hover { color: #333; }
+
+        /* Info boxes */
+        .dbox { border-radius: 8px; padding: 13px 14px; margin-bottom: 11px; border-left: 4px solid transparent; }
+        .dbox h4 { font-size: .88rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .dbox p, .dbox ul { font-size: .87rem; margin: 0; line-height: 1.6; }
+        .dbox ul { padding-left: 18px; }
+        .dbox li { margin-bottom: 4px; }
+        .dbox-blue  { background: linear-gradient(135deg,#eff6ff,#dbeafe); border-color: #3b82f6; }
+        .dbox-blue h4  { color: #1e3a8a; }
+        .dbox-green { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #10b981; }
+        .dbox-green h4 { color: #065f46; }
+        .dbox-amber { background: #fffbeb; border-color: #f59e0b; }
+        .dbox-amber h4 { color: #92400e; }
+        .dbox-red   { background: #fef2f2; border-color: #ef4444; }
+        .dbox-red h4   { color: #991b1b; }
+        .dbox-slate { background: #f8f9fa; border-color: #6BA3D5; }
+        .dbox-slate h4 { color: #2C3E50; }
+        .dbox-purple { background: #faf5ff; border-color: #8b5cf6; }
+        .dbox-purple h4 { color: #6b21a8; }
+
+        /* Big score hero inside modal */
+        .dm-hero {
+            padding: 20px; border-radius: 10px; color: white;
+            text-align: center; margin-bottom: 16px;
+        }
+        .dm-hero .big-num { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+        .dm-hero .sub     { font-size: .9rem; opacity: .88; margin-top: 4px; }
+
+        /* Skill type breakdown rows inside modal */
+        .type-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 7px;
+        }
+        .type-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+        .type-name { font-weight: 700; font-size: .9rem; flex: 1; }
+        .type-count { font-size: .85rem; color: #888; }
+        .type-pct   { font-size: 1rem; font-weight: 800; }
+
+        /* Skill list inside modal */
+        .skill-mini { list-style: none; padding: 0; margin: 0; }
+        .skill-mini li {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0; border-bottom: 1px dotted #e5e7eb; font-size: .87rem;
+        }
+        .skill-mini li:last-child { border-bottom: none; }
+        .sm-score {
+            font-weight: 700; padding: 2px 8px; border-radius: 10px;
+            font-size: .78rem; color: white; flex-shrink: 0;
         }
 
-        .no-analysis-card i {
-            font-size: 4rem;
-            color: #ccc;
-            margin-bottom: 20px;
-        }
-
-        .no-analysis-card h3 {
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .no-analysis-card .btn {
-            margin-top: 15px;
-        }
+        @keyframes dbFadeIn  { from{opacity:0} to{opacity:1} }
+        @keyframes dbSlideUp { from{opacity:0;transform:translate(-50%,-40%)} to{opacity:1;transform:translate(-50%,-50%)} }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .top-skills-list {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .top-skills-list { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -251,17 +252,11 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="/">
-            <img src="assets/logo.png" alt="CVision Logo">
-        </a>
-
+        <a class="navbar-brand" href="/"><img src="assets/logo.png" alt="CVision Logo"></a>
         <ul class="navbar-nav ms-auto align-items-center">
             <li class="nav-item"><a class="nav-link active" href="/dashboard">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="/upload">Upload CV</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
-            <li class="nav-item">
-                <a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a>
-            </li>
+            <li class="nav-item"><a class="nav-link logout-link" href="#" id="logoutBtn">Logout</a></li>
             <li class="nav-item ms-3">
                 <a href="/profile" class="profile-btn">
                     <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/person-circle.svg" alt="Profile">
@@ -271,82 +266,72 @@
     </div>
 </nav>
 
-<!-- DASHBOARD CONTENT -->
 <div class="dashboard-container">
 
-    <!-- Welcome Header -->
+    <!-- Welcome -->
     <div class="welcome-header">
         <h1>Welcome back, <span id="userName">User</span>!</h1>
         <p>Here's an overview of your career development progress</p>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingState" style="display: none; text-align: center; padding: 60px;">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-3">Loading your dashboard...</p>
+    <!-- Loading -->
+    <div id="loadingState" style="display:none;text-align:center;padding:60px;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;"><span class="visually-hidden">Loading…</span></div>
+        <p class="mt-3 text-muted">Loading your dashboard…</p>
     </div>
 
-    <!-- No Analysis State -->
-    <div id="noAnalysisState" style="display: none;">
+    <!-- No analysis -->
+    <div id="noAnalysisState" style="display:none;">
         <div class="no-analysis-card">
             <i class="bi bi-file-earmark-text"></i>
             <h3>No CV Analysis Yet</h3>
-            <p>Upload your CV to get started with personalized skill analysis and job recommendations</p>
-            <a href="/upload" class="btn btn-primary btn-lg">
+            <p>Upload your CV to get personalised skill analysis and career insights.</p>
+            <a href="/upload" class="btn btn-primary btn-lg mt-3">
                 <i class="bi bi-cloud-upload"></i> Upload Your CV
             </a>
         </div>
     </div>
 
-    <!-- Dashboard Content -->
-    <div id="dashboardContent" style="display: none;">
+    <!-- Dashboard content -->
+    <div id="dashboardContent" style="display:none;">
 
-        <!-- Stats Cards -->
+        <!-- Stat cards -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" onclick="showStatModal('total')">
                 <div class="icon"><i class="bi bi-trophy"></i></div>
                 <div class="value" id="totalSkills">0</div>
                 <div class="label">Total Skills</div>
+                <div class="click-hint"><i class="bi bi-cursor-fill"></i> Click for breakdown</div>
             </div>
-
-            <div class="stat-card">
+            <div class="stat-card" onclick="showStatModal('strong')">
                 <div class="icon"><i class="bi bi-star-fill"></i></div>
                 <div class="value" id="strongSkills">0</div>
                 <div class="label">Strong Skills (7+)</div>
+                <div class="click-hint"><i class="bi bi-cursor-fill"></i> Click for breakdown</div>
             </div>
-
-            <div class="stat-card">
+            <div class="stat-card" onclick="showStatModal('demonstrated')">
                 <div class="icon"><i class="bi bi-check-circle"></i></div>
                 <div class="value" id="supportedSkills">0</div>
                 <div class="label">Demonstrated Skills</div>
+                <div class="click-hint"><i class="bi bi-cursor-fill"></i> Click for breakdown</div>
             </div>
-
-            <div class="stat-card">
+            <div class="stat-card" onclick="showStatModal('average')">
                 <div class="icon"><i class="bi bi-graph-up"></i></div>
                 <div class="value" id="avgScore">0</div>
                 <div class="label">Average Score</div>
+                <div class="click-hint"><i class="bi bi-cursor-fill"></i> Click for breakdown</div>
             </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="dashboard-section">
-            <div class="section-header">
-                <h2>Quick Actions</h2>
-            </div>
+            <div class="section-header"><h2>Quick Actions</h2></div>
             <div class="quick-actions">
                 <a href="/upload" class="action-btn">
-                    <i class="bi bi-cloud-upload"></i>
-                    Upload New CV
+                    <i class="bi bi-cloud-upload"></i> Upload New CV
                 </a>
                 <a href="/results" class="action-btn">
-                    <i class="bi bi-bar-chart"></i>
-                    View Full Analysis
-                </a>
-                <a href="#" class="action-btn secondary">
-                    <i class="bi bi-briefcase"></i>
-                    Find Jobs
+                    <i class="bi bi-bar-chart"></i> View Full Analysis
                 </a>
             </div>
         </div>
@@ -366,33 +351,35 @@
         <div class="dashboard-section">
             <div class="section-header">
                 <h2>Your Top Skills</h2>
-                <span class="text-muted">Based on Bloom's Taxonomy Assessment</span>
+                <span style="font-size:.82rem;color:#9ca3af;">Based on Bloom's Taxonomy</span>
             </div>
             <div class="top-skills-list" id="topSkillsList"></div>
         </div>
 
-        <!-- Skill Type Distribution -->
-        <div class="dashboard-section">
-            <div class="section-header">
+        <!-- Skill Type Distribution — clickable -->
+        <div class="dashboard-section skill-type-section" onclick="showSkillTypeModal()">
+            <div class="section-header" style="border-bottom:none;margin-bottom:4px;padding-bottom:0;">
                 <h2>Skill Type Distribution</h2>
+                <span style="font-size:.82rem;color:#9ca3af;">Click chart for details</span>
             </div>
-            <div class="chart-container" style="height: 250px;">
+            <div class="skill-type-hint">
+                <i class="bi bi-cursor-fill"></i> Click anywhere on this section to explore your skill categories
+            </div>
+            <div class="chart-container" style="height:240px;margin-top:14px;">
                 <canvas id="skillTypeChart"></canvas>
             </div>
         </div>
 
         <!-- Experience Summary -->
         <div class="dashboard-section">
-            <div class="section-header">
-                <h2>Experience Summary</h2>
-            </div>
+            <div class="section-header"><h2>Experience Summary</h2></div>
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" style="cursor:default;" onmouseover="this.style.transform=''" onclick="">
                     <div class="icon"><i class="bi bi-briefcase"></i></div>
                     <div class="value" id="industryYears">0</div>
                     <div class="label">Years of Industry Experience</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="cursor:default;" onmouseover="this.style.transform=''" onclick="">
                     <div class="icon"><i class="bi bi-mortarboard"></i></div>
                     <div class="value" id="educationYears">0</div>
                     <div class="label">Years of Education</div>
@@ -400,201 +387,409 @@
             </div>
         </div>
 
-        <!-- Last Updated -->
         <div class="text-center text-muted mt-4">
             <small>Last CV analysis: <span id="lastAnalyzed">--</span></small>
         </div>
 
     </div>
+</div>
 
+<!-- ── Modal backdrop ── -->
+<div class="modal-backdrop-dash" id="dbBackdrop" onclick="closeDbModal()"></div>
+
+<!-- ── Generic modal ── -->
+<div class="dash-modal" id="dbModal">
+    <div class="dm-top">
+        <h3 id="dbModalTitle">Details</h3>
+        <button class="dm-close" onclick="closeDbModal()">&times;</button>
+    </div>
+    <div id="dbModalBody"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const loadingState = document.getElementById('loadingState');
-    const noAnalysisState = document.getElementById('noAnalysisState');
-    const dashboardContent = document.getElementById('dashboardContent');
+'use strict';
 
-    // Load user name
-    async function loadUserInfo() {
-        try {
-            const response = await fetch('/profile-data', { credentials: 'include' });
-            const data = await response.json();
-            if (data.fullName) {
-                document.getElementById('userName').textContent = data.fullName;
-            }
-        } catch (error) {
-            console.error('Error loading user info:', error);
-        }
-    }
+// ── State ─────────────────────────────────────────────────────
+let dashboardData = null;
 
-    // Load dashboard data
-    async function loadDashboard() {
-        loadingState.style.display = 'block';
+const loadingState    = document.getElementById('loadingState');
+const noAnalysisState = document.getElementById('noAnalysisState');
+const dashboardContent= document.getElementById('dashboardContent');
 
-        try {
-            const response = await fetch('/api/latest-cv-analysis', {
-                credentials: 'include'
-            });
-            const result = await response.json();
+// ── Load user info ────────────────────────────────────────────
+async function loadUserInfo() {
+    try {
+        const r = await fetch('/profile-data', { credentials: 'include' });
+        const d = await r.json();
+        if (d.fullName) document.getElementById('userName').textContent = d.fullName.split(' ')[0];
+    } catch(e) {}
+}
 
-            loadingState.style.display = 'none';
+// ── Load dashboard ────────────────────────────────────────────
+async function loadDashboard() {
+    loadingState.style.display = 'block';
+    try {
+        const res    = await fetch('/api/latest-cv-analysis', { credentials: 'include' });
+        const result = await res.json();
+        loadingState.style.display = 'none';
 
-            if (!result.success || !result.hasAnalysis) {
-                noAnalysisState.style.display = 'block';
-                return;
-            }
-
-            // Show dashboard
-            dashboardContent.style.display = 'block';
-
-            const data = result.data;
-
-            // Populate stats
-            document.getElementById('totalSkills').textContent = data.summary.totalSkills;
-            document.getElementById('strongSkills').textContent = data.summary.strongSkills;
-            document.getElementById('supportedSkills').textContent = data.summary.supportedSkills;
-            document.getElementById('avgScore').textContent = parseFloat(data.summary.averageScore).toFixed(1);
-
-            document.getElementById('industryYears').textContent = data.industryYears;
-            document.getElementById('educationYears').textContent = data.educationYears;
-
-            // Last analyzed date
-            const analyzedDate = new Date(data.analyzedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('lastAnalyzed').textContent = analyzedDate;
-
-            // Create charts
-            createSkillsOverviewChart(data.skills);
-            createSkillTypeChart(data.skillsByType);
-            displayTopSkills(data.skills);
-
-        } catch (error) {
-            console.error('Error loading dashboard:', error);
-            loadingState.style.display = 'none';
+        if (!result.success || !result.hasAnalysis) {
             noAnalysisState.style.display = 'block';
-        }
-    }
-
-    // Create skills overview bar chart (top 10 skills)
-    function createSkillsOverviewChart(skills) {
-        const top10 = skills.slice(0, 10);
-        const ctx = document.getElementById('skillsOverviewChart').getContext('2d');
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: top10.map(s => s.name),
-                datasets: [{
-                    label: 'Skill Score',
-                    data: top10.map(s => s.score),
-                    backgroundColor: 'rgba(107, 163, 213, 0.8)',
-                    borderColor: 'rgba(107, 163, 213, 1)',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10,
-                        ticks: { stepSize: 2 }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-
-    // Create skill type pie chart
-    function createSkillTypeChart(skillsByType) {
-        const ctx = document.getElementById('skillTypeChart').getContext('2d');
-        
-        const labels = [];
-        const data = [];
-        const colors = [];
-
-        if (skillsByType.technical > 0) {
-            labels.push('Technical Skills');
-            data.push(skillsByType.technical);
-            colors.push('rgba(107, 163, 213, 0.8)');
-        }
-        if (skillsByType.soft > 0) {
-            labels.push('Soft Skills');
-            data.push(skillsByType.soft);
-            colors.push('rgba(76, 175, 80, 0.8)');
-        }
-        if (skillsByType.business > 0) {
-            labels.push('Business Skills');
-            data.push(skillsByType.business);
-            colors.push('rgba(255, 193, 7, 0.8)');
+            return;
         }
 
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
+        dashboardContent.style.display = 'block';
+        const data = result.data;
+        dashboardData  = data;
+
+        // Stat cards
+        document.getElementById('totalSkills').textContent     = data.summary.totalSkills;
+        document.getElementById('strongSkills').textContent    = data.summary.strongSkills;
+        document.getElementById('supportedSkills').textContent = data.summary.supportedSkills;
+        document.getElementById('avgScore').textContent        = parseFloat(data.summary.averageScore).toFixed(1);
+        document.getElementById('industryYears').textContent   = data.industryYears;
+        document.getElementById('educationYears').textContent  = data.educationYears;
+
+        const d2 = new Date(data.analyzedAt).toLocaleDateString('en-IE', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        document.getElementById('lastAnalyzed').textContent = d2;
+
+        createSkillsOverviewChart(data.skills);
+        createSkillTypeChart(data.skillsByType);
+        displayTopSkills(data.skills);
+
+    } catch(e) {
+        console.error(e);
+        loadingState.style.display = 'none';
+        noAnalysisState.style.display = 'block';
     }
+}
 
-    // Display top 6 skills
-    function displayTopSkills(skills) {
-        const container = document.getElementById('topSkillsList');
-        const top6 = skills.slice(0, 6);
-
-        container.innerHTML = top6.map(skill => {
-            let levelClass = 'low';
-            if (skill.score >= 7) levelClass = 'high';
-            else if (skill.score >= 5) levelClass = 'medium';
-
-            return `
-                <div class="skill-badge ${levelClass}">
-                    <div>
-                        <div class="skill-name">${skill.name}</div>
-                        <div class="skill-level">${skill.bloomLevel} • ${skill.confidence} Confidence</div>
-                    </div>
-                    <div class="skill-score">${skill.score.toFixed(1)}/10</div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (confirm('Are you sure you want to logout?')) {
-            await fetch('/logout', { method: 'POST' });
-            window.location.href = '/';
+// ── Skills overview bar chart ─────────────────────────────────
+function createSkillsOverviewChart(skills) {
+    const top = skills.slice(0,10);
+    const cols = top.map(s => s.score>=8?'rgba(16,185,129,.85)':s.score>=7?'rgba(107,163,213,.85)':s.score>=5?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)');
+    new Chart(document.getElementById('skillsOverviewChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: top.map(s=>s.name),
+            datasets: [{ label:'Score', data:top.map(s=>s.score), backgroundColor:cols, borderColor:cols.map(c=>c.replace('.85','1')), borderWidth:2, borderRadius:5 }]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            scales:{ y:{beginAtZero:true,max:10,ticks:{stepSize:2}}, x:{grid:{display:false}} },
+            plugins:{ legend:{display:false} }
         }
     });
+}
 
-    // Load data on page load
-    loadUserInfo();
-    loadDashboard();
+// ── Skill type doughnut chart ─────────────────────────────────
+const TYPE_COLORS = {
+    technical: 'rgba(107,163,213,.85)',
+    soft:      'rgba(76,175,80,.85)',
+    business:  'rgba(255,193,7,.85)',
+    domain:    'rgba(156,39,176,.85)',
+    language:  'rgba(33,150,243,.85)',
+    other:     'rgba(158,158,158,.85)'
+};
+const TYPE_LABELS = {
+    technical:'Technical', soft:'Soft', business:'Business',
+    domain:'Domain', language:'Language', other:'Other'
+};
+
+function createSkillTypeChart(skillsByType) {
+    const keys  = Object.keys(skillsByType).filter(k=>skillsByType[k]>0);
+    const labels= keys.map(k=>TYPE_LABELS[k]||k);
+    const data  = keys.map(k=>skillsByType[k]);
+    const cols  = keys.map(k=>TYPE_COLORS[k]||'rgba(158,158,158,.85)');
+
+    new Chart(document.getElementById('skillTypeChart').getContext('2d'), {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data, backgroundColor:cols, borderColor:cols.map(c=>c.replace('.85','1')), borderWidth:2 }] },
+        options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ padding:16, font:{ size:12 } } } }
+        }
+    });
+}
+
+// ── Top 6 skills list ─────────────────────────────────────────
+function displayTopSkills(skills) {
+    const container = document.getElementById('topSkillsList');
+    container.innerHTML = skills.slice(0,6).map(s => {
+        const cls = s.score>=7?'high':s.score>=5?'medium':'low';
+        return `<div class="skill-badge ${cls}">
+            <div>
+                <div class="skill-name">${s.name}</div>
+                <div class="skill-level">${s.bloomLevel||'—'} · ${s.confidence||''} Confidence</div>
+            </div>
+            <div class="skill-score">${parseFloat(s.score).toFixed(1)}/10</div>
+        </div>`;
+    }).join('');
+}
+
+// ================================================================
+//  STAT CARD MODALS
+// ================================================================
+function showStatModal(type) {
+    if (!dashboardData) return;
+    const data   = dashboardData;
+    const skills = data.skills || [];
+    const sum    = data.summary || {};
+    let title = '', body = '';
+
+    if (type === 'total') {
+        title = `${sum.totalSkills} Total Skills`;
+        const byType = data.skillsByType || {};
+        const total  = sum.totalSkills;
+        const typeBreakdown = Object.entries(byType)
+            .filter(([,v])=>v>0)
+            .sort((a,b)=>b[1]-a[1])
+            .map(([k,v]) => {
+                const col = TYPE_COLORS[k]||'rgba(158,158,158,.85)';
+                const pct = ((v/total)*100).toFixed(1);
+                return `<div class="type-row">
+                    <span class="type-dot" style="background:${col.replace('.85','1')};"></span>
+                    <span class="type-name">${TYPE_LABELS[k]||k} Skills</span>
+                    <span class="type-count">${v} skill${v!==1?'s':''}</span>
+                    <span class="type-pct" style="color:${col.replace('.85','1')};">${pct}%</span>
+                </div>`;
+            }).join('');
+
+        body = `
+            <div class="dm-hero" style="background:linear-gradient(135deg,#6BA3D5,#89B7DC);">
+                <div class="big-num">${total}</div>
+                <div class="sub">Skills extracted from your CV</div>
+            </div>
+            <div class="dbox dbox-blue">
+                <h4><i class="bi bi-info-circle"></i> What This Means</h4>
+                <p>${total >= 15 ? 'Your CV demonstrates a broad skill set. A wide range of skills signals adaptability and versatility to employers.' : total >= 8 ? 'You have a solid core skill set. Focus on deepening expertise in your key areas before broadening further.' : 'Your CV currently shows a smaller set of skills. Consider adding relevant tools, technologies, and competencies from your experience.'}</p>
+            </div>
+            <div class="dbox dbox-slate">
+                <h4><i class="bi bi-pie-chart"></i> Breakdown by Category</h4>
+                ${typeBreakdown}
+            </div>
+            <div class="dbox dbox-amber">
+                <h4><i class="bi bi-lightbulb"></i> Tip</h4>
+                <p>Recruiters scan for 10–15 clearly evidenced skills. Make sure each skill on your CV is backed by a concrete example or result.</p>
+            </div>`;
+
+    } else if (type === 'strong') {
+        const strongList = skills.filter(s=>s.score>=7).sort((a,b)=>b.score-a.score);
+        const strongCount= strongList.length;
+        title = `${strongCount} Strong Skills`;
+
+        const heroCol = strongCount >= Math.round(sum.totalSkills*0.5)
+            ? 'linear-gradient(135deg,#10b981,#34d399)'
+            : strongCount > 0
+                ? 'linear-gradient(135deg,#f59e0b,#fbbf24)'
+                : 'linear-gradient(135deg,#ef4444,#f87171)';
+
+        body = `
+            <div class="dm-hero" style="background:${heroCol};">
+                <div class="big-num">${strongCount}</div>
+                <div class="sub">Skills rated 7/10 or above — above benchmark</div>
+            </div>
+            <div class="dbox dbox-green">
+                <h4><i class="bi bi-star-fill"></i> Your Strong Skills</h4>
+                ${strongList.length ? `<ul class="skill-mini">
+                    ${strongList.map(s=>{
+                        const col=s.score>=9?'#1e3a8a':s.score>=8?'#10b981':'#6BA3D5';
+                        return `<li><span>${s.name}</span><span class="sm-score" style="background:${col};">${s.score}/10</span></li>`;
+                    }).join('')}
+                </ul>` : '<p>No skills at 7/10 or above yet.</p>'}
+            </div>
+            <div class="dbox dbox-blue">
+                <h4><i class="bi bi-info-circle"></i> Why 7/10 Is the Benchmark</h4>
+                <p>A score of 7 corresponds to the "Analyse" level of Bloom's Taxonomy — where you can break down complex problems, not just apply a skill. Most employers treat 7+ as genuinely job-ready proficiency.</p>
+            </div>
+            <div class="dbox dbox-amber">
+                <h4><i class="bi bi-arrow-up-circle"></i> How to Get More to 7+</h4>
+                <ul>
+                    <li>Add quantified examples to your CV — "reduced load time by 40%" pushes a score up</li>
+                    <li>Include project names, tools used, and measurable outcomes</li>
+                    <li>Certifications and open-source contributions signal evidence of depth</li>
+                </ul>
+            </div>`;
+
+    } else if (type === 'demonstrated') {
+        const demList  = skills.filter(s=>s.supported||s.score>=5).sort((a,b)=>b.score-a.score);
+        const undemList= skills.filter(s=>!s.supported&&s.score<5);
+        const demCount = sum.supportedSkills;
+        title = `${demCount} Demonstrated Skills`;
+
+        body = `
+            <div class="dm-hero" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                <div class="big-num">${demCount}</div>
+                <div class="sub">Skills backed by evidence in your CV</div>
+            </div>
+            <div class="dbox dbox-blue">
+                <h4><i class="bi bi-info-circle"></i> What "Demonstrated" Means</h4>
+                <p>A demonstrated skill is one where your CV contains concrete evidence — a project, responsibility, result, or specific tool usage. Undocumented skills score lower because recruiters and AI systems both look for evidence, not just skill names.</p>
+            </div>
+            <div class="dbox dbox-green">
+                <h4><i class="bi bi-check-circle-fill"></i> Demonstrated (${demList.length})</h4>
+                <ul class="skill-mini">
+                    ${demList.slice(0,10).map(s=>{
+                        const col=s.score>=7?'#10b981':s.score>=5?'#6BA3D5':'#9ca3af';
+                        return `<li><span>${s.name}</span><span class="sm-score" style="background:${col};">${s.score}/10</span></li>`;
+                    }).join('')}
+                    ${demList.length>10?`<li style="color:#9ca3af;font-style:italic;">+${demList.length-10} more</li>`:''}
+                </ul>
+            </div>
+            ${undemList.length?`
+            <div class="dbox dbox-amber">
+                <h4><i class="bi bi-exclamation-triangle"></i> Needs Evidence (${undemList.length})</h4>
+                <p style="margin-bottom:8px;">These skills appear on your CV but lack concrete backing. Adding examples will raise their scores:</p>
+                <ul class="skill-mini">
+                    ${undemList.slice(0,8).map(s=>`<li><span>${s.name}</span><span class="sm-score" style="background:#e5e7eb;color:#555;">${s.score}/10</span></li>`).join('')}
+                </ul>
+            </div>`:''}`;
+
+    } else if (type === 'average') {
+        const avg = parseFloat(sum.averageScore);
+        const verdict = avg>=7.5?'Excellent':avg>=6.5?'Good':avg>=5.5?'Moderate':'Needs Work';
+        const heroCol = avg>=7.5?'linear-gradient(135deg,#10b981,#34d399)':avg>=6?'linear-gradient(135deg,#3b82f6,#60a5fa)':avg>=5?'linear-gradient(135deg,#f59e0b,#fbbf24)':'linear-gradient(135deg,#ef4444,#f87171)';
+
+        // Distribution bucketing
+        const buckets = { expert:0, strong:0, moderate:0, weak:0 };
+        skills.forEach(s => {
+            if (s.score>=8)      buckets.expert++;
+            else if (s.score>=7) buckets.strong++;
+            else if (s.score>=5) buckets.moderate++;
+            else                 buckets.weak++;
+        });
+
+        title = `Average Score: ${avg.toFixed(1)}/10`;
+        body = `
+            <div class="dm-hero" style="background:${heroCol};">
+                <div class="big-num">${avg.toFixed(1)}<span style="font-size:1.5rem;opacity:.7;">/10</span></div>
+                <div class="sub">${verdict} — average proficiency across all ${sum.totalSkills} skills</div>
+            </div>
+
+            <div class="dbox dbox-slate">
+                <h4><i class="bi bi-bar-chart-fill"></i> Score Distribution</h4>
+                <div class="type-row"><span style="font-size:1.1rem;width:28px;text-align:center;">🏅</span><span class="type-name">Expert (8–10)</span><span class="type-count">${buckets.expert} skill${buckets.expert!==1?'s':''}</span></div>
+                <div class="type-row"><span style="font-size:1.1rem;width:28px;text-align:center;"><i class="bi bi-star-fill" style="color:#3b82f6;"></i></span><span class="type-name">Strong (7–7.9)</span><span class="type-count">${buckets.strong} skill${buckets.strong!==1?'s':''}</span></div>
+                <div class="type-row"><span style="font-size:1.1rem;width:28px;text-align:center;"><i class="bi bi-dash-circle" style="color:#f59e0b;"></i></span><span class="type-name">Moderate (5–6.9)</span><span class="type-count">${buckets.moderate} skill${buckets.moderate!==1?'s':''}</span></div>
+                <div class="type-row"><span style="font-size:1.1rem;width:28px;text-align:center;"><i class="bi bi-exclamation-circle" style="color:#ef4444;"></i></span><span class="type-name">Needs Work (< 5)</span><span class="type-count">${buckets.weak} skill${buckets.weak!==1?'s':''}</span></div>
+            </div>
+
+            <div class="dbox dbox-blue">
+                <h4><i class="bi bi-info-circle"></i> What This Score Reflects</h4>
+                <p>The average is weighted across all skills. A higher concentration of low-evidence skills pulls it down — even if your strongest skills are very high. Adding concrete CV evidence to moderately-scored skills is the fastest way to raise this number.</p>
+            </div>
+
+            <div class="dbox dbox-${avg>=6.5?'green':'amber'}">
+                <h4><i class="bi bi-lightbulb"></i> What to Focus On</h4>
+                ${avg>=7.5
+                    ? '<p>Your average is excellent. Highlight your top 5 skills prominently in your CV header and tailor them to each role you apply for.</p>'
+                    : avg>=6
+                        ? '<p>You are close to a strong average. Focus on the skills currently sitting at 5–6: add one quantified example each and they can move to 7+, pulling your average up significantly.</p>'
+                        : '<p>Most skills need more evidence. Rewrite your experience section to include specific tools used, outcomes achieved, and responsibilities held — these are what the AI looks for when scoring.</p>'}
+            </div>`;
+    }
+
+    document.getElementById('dbModalTitle').textContent = title;
+    document.getElementById('dbModalBody').innerHTML    = body;
+    openDbModal();
+}
+
+// ================================================================
+//  SKILL TYPE MODAL
+// ================================================================
+function showSkillTypeModal() {
+    if (!dashboardData) return;
+    const skills     = dashboardData.skills || [];
+    const skillsType = dashboardData.skillsByType || {};
+    const total      = Object.values(skillsType).reduce((a,b)=>a+b,0);
+
+    const order = ['technical','soft','business','domain','language','other'];
+
+    let rows = order.filter(k=>skillsType[k]>0).map(k => {
+        const count = skillsType[k];
+        const col   = TYPE_COLORS[k]||'rgba(158,158,158,.85)';
+        const pct   = ((count/total)*100).toFixed(1);
+        const catSkills = skills.filter(s=>s.category===k||s.skillType===k).sort((a,b)=>b.score-a.score);
+
+        const miniList = catSkills.length
+            ? `<ul class="skill-mini" style="padding:8px 0 4px;">
+                ${catSkills.map(s=>{
+                    const bg=s.score>=8?'#10b981':s.score>=7?'#6BA3D5':s.score>=5?'#f59e0b':'#ef4444';
+                    return `<li><span>${s.name}</span><span class="sm-score" style="background:${bg};">${s.score}/10</span></li>`;
+                }).join('')}
+              </ul>`
+            : '<p style="font-size:.83rem;color:#9ca3af;padding:4px 0;">No skills in this category</p>';
+
+        return `<div class="dbox dbox-slate" style="margin-bottom:10px;">
+            <h4>
+                <span style="width:12px;height:12px;border-radius:50%;background:${col.replace('.85','1')};display:inline-block;margin-right:4px;flex-shrink:0;"></span>
+                ${TYPE_LABELS[k]} Skills
+                <span style="margin-left:auto;font-size:.8rem;font-weight:700;color:${col.replace('.85','1')};">${count} (${pct}%)</span>
+            </h4>
+            ${miniList}
+        </div>`;
+    }).join('');
+
+    const descriptions = {
+        technical:  'Tools, programming languages, frameworks, and platforms — the hard technical capabilities employers test for.',
+        soft:       'Communication, teamwork, leadership, and interpersonal skills — increasingly weighted in modern hiring.',
+        business:   'Project management, strategic thinking, financial literacy, and domain-specific business competencies.',
+        domain:     'Industry or subject-specific knowledge (e.g. healthcare, finance, engineering).',
+        language:   'Spoken and written languages — a growing differentiator in multinational hiring.',
+        other:      'Skills that don\'t fit neatly into other categories but were identified in your CV.'
+    };
+
+    const presentTypes = order.filter(k=>skillsType[k]>0);
+    const keyInsight = presentTypes.includes('technical') && presentTypes.includes('soft')
+        ? 'Your CV shows both technical and soft skills — a strong combination that appeals to most employers.'
+        : presentTypes.includes('technical') && !presentTypes.includes('soft')
+            ? 'Your CV is heavily technical. Consider adding soft skills evidence — leadership, collaboration, and communication are highly valued.'
+            : 'Your CV shows soft skills but could benefit from more technical skill evidence depending on the role you\'re targeting.';
+
+    document.getElementById('dbModalTitle').textContent = 'Skill Type Distribution';
+    document.getElementById('dbModalBody').innerHTML = `
+        <div class="dbox dbox-blue" style="margin-bottom:16px;">
+            <h4><i class="bi bi-info-circle"></i> What These Categories Mean</h4>
+            <ul>
+                ${presentTypes.map(k=>`<li><strong>${TYPE_LABELS[k]}:</strong> ${descriptions[k]}</li>`).join('')}
+            </ul>
+        </div>
+        <div class="dbox dbox-green" style="margin-bottom:16px;">
+            <h4><i class="bi bi-lightbulb"></i> Key Insight</h4>
+            <p>${keyInsight}</p>
+        </div>
+        <p style="font-size:.88rem;color:#555;margin-bottom:14px;">
+            Your CV contains <strong>${total} skills</strong> across ${presentTypes.length} categor${presentTypes.length!==1?'ies':'y'}. Click any category below to see individual skills.
+        </p>
+        ${rows}`;
+
+    openDbModal();
+}
+
+// ── Modal helpers ─────────────────────────────────────────────
+function openDbModal() {
+    document.getElementById('dbBackdrop').classList.add('show');
+    document.getElementById('dbModal').classList.add('show');
+}
+
+function closeDbModal() {
+    document.getElementById('dbBackdrop').classList.remove('show');
+    document.getElementById('dbModal').classList.remove('show');
+}
+
+// ── Logout ────────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', async e => {
+    e.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+    }
+});
+
+// ── Init ──────────────────────────────────────────────────────
+loadUserInfo();
+loadDashboard();
 </script>
 
 </body>
