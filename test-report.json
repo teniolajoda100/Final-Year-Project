@@ -1,0 +1,10 @@
+{
+  "ts": "2026-03-25T10:36:40.859Z",
+  "passed": 28,
+  "failed": 3,
+  "failures": [
+    "No error in response — Could not extract text from file",
+    "No error in comparison — No CV analysis found. Please upload your CV first.",
+    "Upload success:true — Could not extract sufficient text from CV"
+  ]
+}
