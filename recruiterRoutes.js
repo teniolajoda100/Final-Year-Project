@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const mammoth = require('mammoth');
 const fs = require('fs');
-
+//I had to change the A to lowercase
 const { extractPDFText } = require('./cvAnalysis');
 const { analyzeCandidateCV, compareCandidates } = require('./recruiteranalysis');
 const {
