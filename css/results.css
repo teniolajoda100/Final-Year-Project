@@ -106,7 +106,7 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Grid layouts */
-.results-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.results-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; align-items: start; }
 .bottom-grid   { display: grid; grid-template-columns: 1fr;     gap: 24px; margin-bottom: 24px; }
 .metrics-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
 

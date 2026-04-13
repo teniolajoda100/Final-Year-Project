@@ -175,11 +175,11 @@ function detectCategory(skill) {
         return { category: "Cloud & DevOps", weight: 0.8, type: "technical" };
     }
     
-    // Default to "Technical Skills" instead of "Other"
+    // Default to Technical Skills instead of Other
     return { category: "Technical Skills", weight: 0.5, type: "technical" };
 }
 
-// IMPROVED: Enhanced proficiency calculation with ALL improvements
+// proficiency calculation
 function calculateProficiency(skill, cvText, industryYears, educationYears) {
     const skillLower = skill.toLowerCase();
     const textLower = cvText.toLowerCase();
@@ -188,7 +188,7 @@ function calculateProficiency(skill, cvText, industryYears, educationYears) {
     // Count skill mentions for frequency analysis
     const skillMentions = (textLower.match(new RegExp(skillLower, 'g')) || []).length;
     
-    // If skill not found, use timeline estimation with LOW confidence
+    // If skill not found use timeline estimation with low confidence
     if (skillIndex === -1) {
         const timelineResult = estimateByTimeline(industryYears, educationYears, skillMentions);
         return {
@@ -210,7 +210,7 @@ function calculateProficiency(skill, cvText, industryYears, educationYears) {
     let evidenceCount = 0;
     let evidencePieces = [];
     
-    // IMPROVEMENT 5: Enhanced Bloom's Taxonomy with outcomes
+    // Bloom's Taxonomy with outcomes
     const expertKeywords = ['designed', 'architected', 'invented', 'pioneered', 'created framework', 'from scratch', 'published', 'taught', 'leading expert'];
     const expertWithOutcome = /(designed|architected|created).*?(system|architecture|framework|solution)/i.test(context);
     
@@ -264,13 +264,13 @@ function calculateProficiency(skill, cvText, industryYears, educationYears) {
         evidencePieces.push('Beginner-level language detected');
     }
     
-    // IMPROVEMENT 7: Count frequency
+    // Count frequency
     if (skillMentions > 1) {
         evidenceCount++;
         evidencePieces.push(`Skill mentioned ${skillMentions} times`);
     }
     
-    // IMPROVEMENT 1: Require multiple pieces of evidence for high scores
+    //Require multiple pieces of evidence for high scores
     let score, bloomLevel, basis;
     
     // Expert level (Create) - REQUIRES 3+ evidence pieces
@@ -355,7 +355,7 @@ function calculateProficiency(skill, cvText, industryYears, educationYears) {
     };
 }
 
-// IMPROVEMENT 7: Enhanced timeline estimation
+// timeline estimation
 function estimateByTimeline(industryYears, educationYears, mentionCount = 1) {
     const frequencyBonus = mentionCount > 2 ? 0.5 : 0;
     

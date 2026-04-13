@@ -72,7 +72,7 @@ app.use('/api/recruiter', recruiterRoutes);
    HELPER FUNCTIONS
    ================================ */
 
-// LLM-assisted skill proficiency analysis
+// LLM assisted skill proficiency analysis
 async function analyzeSkillProficiency(skills, cvText, industryYears, educationYears) {
     try {
         const prompt = `You are an expert CV analyst. Analyze the proficiency level for each skill based on the CV text.
@@ -363,7 +363,7 @@ app.post('/analyze', upload.single('cvFile'), async (req, res) => {
         if (!req.file) return res.json({ error: 'No file uploaded' });
 
         if (!openai || !process.env.OPENAI_API_KEY) {
-            return res.json({ error: 'OpenAI API key not configured' });
+            return res.json({ error: 'LLM API key not configured' });
         }
 
         let text = req.file.originalname.toLowerCase().endsWith('.pdf') 
@@ -398,9 +398,9 @@ CV: ${text.substring(0, 3000)}`
         const educationYears = extractEducationYears(data.education || []);
         const industryYears = extractIndustryYears(data.experience || []);
         
-        console.log(`\n📄 Analyzing CV: ${data.skills?.length || 0} skills, ${industryYears} years industry experience`);
+        console.log(`\n Analyzing CV: ${data.skills?.length || 0} skills, ${industryYears} years industry experience`);
 
-        console.log('📊 Step 1: LLM analyzing skills...');
+        console.log(' Step 1: LLM analyzing skills...');
         const llmAnalysis = await analyzeSkillProficiency(
             data.skills || [], 
             text, 
@@ -408,7 +408,7 @@ CV: ${text.substring(0, 3000)}`
             educationYears
         );
 
-        console.log('⚙️  Step 2: Processing with hybrid scoring...');
+        console.log('  Step 2: Processing with hybrid scoring...');
         const skillsWithProficiency = (data.skills || []).map(skillName => {
             const categoryInfo = detectCategory(skillName);
             
@@ -425,7 +425,7 @@ CV: ${text.substring(0, 3000)}`
                 basis = llmSkill.basis || 'LLM-analyzed';
                 confidence = 'High';
                 
-                console.log(`   ✅ LLM scored "${skillName}": ${finalScore}/10 (${bloomLevel})`);
+                console.log(`  LLM scored "${skillName}": ${finalScore}/10 (${bloomLevel})`);
             } else {
                 const proficiency = calculateProficiency(skillName, text, industryYears, educationYears);
                 finalScore = proficiency.score;
@@ -434,7 +434,7 @@ CV: ${text.substring(0, 3000)}`
                 basis = proficiency.basis;
                 confidence = proficiency.confidence;
                 
-                console.log(`   📝 Rule-based scored "${skillName}": ${finalScore}/10`);
+                console.log(`   Rule-based scored "${skillName}": ${finalScore}/10`);
             }
 
             let experienceBoost = 0;

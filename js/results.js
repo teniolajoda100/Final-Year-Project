@@ -242,10 +242,13 @@ function buildSkillsChart(skills) {
                        'rgba(239,68,68,0.85)'
     );
 
+    // Dynamic height: 36px per skill so every skill is visible
+    const canvas = document.getElementById('skillsChart');
+    canvas.style.height = Math.max(300, skills.length * 36) + 'px';
+
     if (skillsChartInstance) skillsChartInstance.destroy();
 
-    skillsChartInstance = new Chart(
-        document.getElementById('skillsChart').getContext('2d'), {
+    skillsChartInstance = new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
             labels: skills.map(s => s.name),
@@ -259,21 +262,30 @@ function buildSkillsChart(skills) {
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: true,
+            indexAxis: 'y',          // horizontal bars — grows vertically with skill count
+            responsive: true,
+            maintainAspectRatio: false,
             onClick: (e, els) => { if (els.length) showSkillModal(els[0].index); },
             scales: {
-                y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } },
-                x: { ticks: { font: { size: 11, weight: 'bold' } }, grid: { display: false } }
+                x: {
+                    beginAtZero: true, max: 10,
+                    ticks: { stepSize: 1 },
+                    grid: { color: 'rgba(0,0,0,0.06)' }
+                },
+                y: {
+                    ticks: { font: { size: 12, weight: 'bold' }, color: '#2C3E50' },
+                    grid: { display: false }
+                }
             },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
                         afterLabel: ctx => [
-                            `Confidence: ${skills[ctx.dataIndex].confidence || 'N/A'}`,
+                            `Score: ${skills[ctx.dataIndex].score}/10`,
                             `Bloom's: ${skills[ctx.dataIndex].bloomLevel || 'N/A'}`,
                             `Category: ${skills[ctx.dataIndex].category}`,
-                            'Click for details'
+                            'Click bar for full details'
                         ]
                     }
                 }

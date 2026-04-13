@@ -56,7 +56,9 @@
             <h2>Skills Level Results</h2>
             <p>Scores assessed using Bloom's Taxonomy (1–10).</p>
             <div class="card-interact-hint"><i class="bi bi-cursor-fill"></i> Click any bar for a detailed breakdown</div>
-            <canvas id="skillsChart"></canvas>
+            <div style="overflow-y:auto; max-height:600px; padding-right:4px;">
+                <canvas id="skillsChart"></canvas>
+            </div>
         </div>
 
         <div class="results-card clickable" onclick="showPieModal()">

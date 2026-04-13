@@ -63,20 +63,40 @@ async function postForm(path, fields, cookie = '') {
 }
 
 // Minimal valid PDF containing the CV text — avoids mammoth DOCX parsing
-function makePDF(text) {
-    const safe = text.replace(/\\/g,'\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
-    const stream = 'BT /F1 10 Tf 30 800 Td (' + safe + ') Tj ET';
-    const len    = stream.length;
-    const n = '\n';
-    const body =
-        '%PDF-1.4'+n+
-        '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj'+n+
-        '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj'+n+
-        '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>>>>>>>endobj'+n+
-        '4 0 obj<</Length '+len+'>>'+n+'stream'+n+stream+n+'endstream'+n+'endobj'+n+
-        'xref'+n+'0 5'+n+'0000000000 65535 f '+n+
-        'trailer<</Size 5/Root 1 0 R>>'+n+'startxref'+n+'9'+n+'%%EOF';
-    return Buffer.from(body);
+function makeDocx(text) {
+    const zlib = require('zlib');
+    function crc32(buf) {
+        let crc = 0xFFFFFFFF;
+        for (const b of buf) { crc ^= b; for (let i=0;i<8;i++) crc=(crc>>>1)^(crc&1?0xEDB88320:0); }
+        return (crc^0xFFFFFFFF)>>>0;
+    }
+    function entry(name, data) {
+        const nb = Buffer.from(name), db = Buffer.isBuffer(data)?data:Buffer.from(data);
+        const crc = crc32(db);
+        const comp = zlib.deflateRawSync(db);
+        const useComp = comp.length < db.length;
+        const cd = useComp ? comp : db, method = useComp ? 8 : 0;
+        const lh = Buffer.alloc(30 + nb.length);
+        lh.writeUInt32LE(0x04034b50,0); lh.writeUInt16LE(20,4); lh.writeUInt16LE(0,6);
+        lh.writeUInt16LE(method,8); lh.writeUInt16LE(0,10); lh.writeUInt16LE(0,12);
+        lh.writeUInt32LE(crc,14); lh.writeUInt32LE(cd.length,18); lh.writeUInt32LE(db.length,22);
+        lh.writeUInt16LE(nb.length,26); lh.writeUInt16LE(0,28); nb.copy(lh,30);
+        return {lh, cd, nb, crc, cl:cd.length, ul:db.length, method};
+    }
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const entries = [
+        entry('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'),
+        entry('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'),
+        entry('word/document.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t xml:space="preserve">'+esc(text)+'</w:t></w:r></w:p></w:body></w:document>'),
+    ];
+    const parts=[]; const offsets=[]; let off=0;
+    for(const e of entries){offsets.push(off);parts.push(e.lh,e.cd);off+=e.lh.length+e.cd.length;}
+    const cds=entries.map((e,i)=>{const cd=Buffer.alloc(46+e.nb.length);cd.writeUInt32LE(0x02014b50,0);cd.writeUInt16LE(20,4);cd.writeUInt16LE(20,6);cd.writeUInt16LE(0,8);cd.writeUInt16LE(e.method,10);cd.writeUInt16LE(0,12);cd.writeUInt16LE(0,14);cd.writeUInt32LE(e.crc,16);cd.writeUInt32LE(e.cl,20);cd.writeUInt32LE(e.ul,24);cd.writeUInt16LE(e.nb.length,28);cd.writeUInt16LE(0,30);cd.writeUInt16LE(0,32);cd.writeUInt16LE(0,34);cd.writeUInt16LE(0,36);cd.writeUInt32LE(0,38);cd.writeUInt32LE(offsets[i],42);e.nb.copy(cd,46);return cd;});
+    const cdBuf=Buffer.concat(cds),eocd=Buffer.alloc(22);
+    eocd.writeUInt32LE(0x06054b50,0);eocd.writeUInt16LE(0,4);eocd.writeUInt16LE(0,6);
+    eocd.writeUInt16LE(entries.length,8);eocd.writeUInt16LE(entries.length,10);
+    eocd.writeUInt32LE(cdBuf.length,12);eocd.writeUInt32LE(off,16);eocd.writeUInt16LE(0,20);
+    return Buffer.concat([...parts,cdBuf,eocd]);
 }
 const CV = `John Smith — Software Engineer
 SKILLS: JavaScript, React, Node.js, PostgreSQL, Python, AWS, Docker
@@ -124,8 +144,8 @@ async function testCV() {
 
     // Valid upload — send as PDF so server uses extractPDFText() not mammoth
     const fd = new FormData();
-    const pdfBytes = makePDF(CV);
-    fd.append('cvFile', new Blob([pdfBytes], { type: 'application/pdf' }), 'cv.pdf');
+    const docxBuf = makeDocx(CV);
+    fd.append('cvFile', new Blob([docxBuf], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), 'cv.docx');
     const t0 = Date.now();
     const r  = await post('/analyze', fd, session);
     const ms = Date.now() - t0;
@@ -202,8 +222,8 @@ async function testRecruiter() {
     assert('Stats has total_candidates',     typeof stats.json?.stats?.total_candidates !== 'undefined');
 
     const fd = new FormData();
-    const recPdf = makePDF(CV);
-    fd.append('cvFile', new Blob([recPdf], { type: 'application/pdf' }), 'cand.pdf');
+    const recDocx = makeDocx(CV);
+    fd.append('cvFile', new Blob([recDocx], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), 'cand.docx');
     fd.append('candidateName', 'Test Candidate');
     fd.append('jobTitle', 'Software Engineer');
     const up = await post('/api/recruiter/candidates/upload', fd, recruiterSession);
