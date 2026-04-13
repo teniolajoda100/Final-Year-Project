@@ -5,7 +5,7 @@ const mammoth = require('mammoth');
 const fs = require('fs');
 
 const { extractPDFText } = require('./cvAnalysis');
-const { analyzeCandidateCV, compareCandidates } = require('./recruiterAnalysis');
+const { analyzeCandidateCV, compareCandidates } = require('./recruiteranalysis');
 const {
     createCandidate,
     saveCandidateAnalysis,
