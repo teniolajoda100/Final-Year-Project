@@ -12,9 +12,9 @@ const {
     analyzeJobRequirements
 } = require('./jobAnalysis');
 
-/* ================================
-   CANDIDATE CV ANALYSIS FOR RECRUITERS
-   ================================ */
+/* 
+   CANDIDATE CV ANALYSIS FOR RECRUITER.
+   */
 
 // Main function: Analyze candidate CV for specific job position
 async function analyzeCandidateCV(cvText, jobTitle, candidateName = 'Candidate') {
